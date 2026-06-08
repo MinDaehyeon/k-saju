@@ -74,6 +74,22 @@ async function callGemini(user:string):Promise<Record<string,string>|null>{
   }
   return null;
 }
+// 손금/관상 — Gemini Vision. 이미지+프롬프트 → 리딩 텍스트 | null
+export async function enrichVision(b64:string, mime:string, prompt:string):Promise<string|null>{
+  if(!GKEY) return null;
+  for(const model of GMODELS){
+    for(let a=0;a<2;a++){
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${model.trim()}:generateContent?key=${GKEY}`;
+      const res=await fetch(url,{method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},{inline_data:{mime_type:mime,data:b64}}]}],
+          generationConfig:{temperature:0.85,maxOutputTokens:1400}})});
+      if(res.ok){ const j:any=await res.json(); const t=j.candidates?.[0]?.content?.parts?.[0]?.text||""; if(t) return t; break; }
+      const s=res.status; console.error("[vision]",model,s,(await res.text()).slice(0,120));
+      if(s===503||s===429){ await new Promise(f=>setTimeout(f,1200*(a+1))); continue; } break;
+    }
+  }
+  return null;
+}
 // sections: {key:{title,verdict,body}} => {key: enrichedBody} | null. Anthropic 우선, 실패 시 Gemini.
 export async function enrichReading(
   facts:string, sections:Record<string,{title:string;verdict:string;body:string}>, opts:{name?:string;koreanName?:string}

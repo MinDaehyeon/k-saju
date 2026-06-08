@@ -5,13 +5,21 @@
 import { SajuChart, STEMS, BRANCHES, BRANCHES_KR, STEMS_KR, STEM_ELEM, BRANCH_ELEM, ELEM_EN } from "./saju.ts";
 import { Reading } from "./reading.ts";
 
-export interface ModuleMeta{ id:string; title:string; price:number; emoji:string; teaser:string; addon:boolean; }
+export interface ModuleMeta{ id:string; title:string; price:number; emoji:string; teaser:string; addon:boolean; needsPhoto?:boolean; }
 export const CATALOG: ModuleMeta[] = [
   {id:"core",        title:"Your Saju Reading",            price:4.99, emoji:"🔮", addon:false, teaser:"Four Pillars · day master · wealth · love · career · 2026 · luck."},
   {id:"monthly_2026",title:"2026 Month-by-Month",          price:3.99, emoji:"📅", addon:true,  teaser:"All 12 months of your Fire Horse year, decoded one by one."},
   {id:"daeun_life",  title:"Your Life Map · Great Luck",   price:4.99, emoji:"🗺️", addon:true,  teaser:"Your 10-year luck cycles — the decades that make or break you."},
   {id:"love_deep",   title:"Love & Marriage Deep-Dive",    price:2.99, emoji:"💕", addon:true,  teaser:"Your ideal partner, your marriage years, your red flags."},
+  {id:"palm",        title:"AI Palm Reading (손금)",       price:2.99, emoji:"✋", addon:true,  needsPhoto:true, teaser:"Upload your palm — AI reads your heart, head & life lines."},
 ];
+// 손금 비전 프롬프트 (한국 손금/관상 + 사주 컨텍스트)
+export const PALM_PROMPT=(facts:string,kor:string)=>
+`You are a Korean palmistry (손금) + Saju master. Read THIS palm photo for ${kor||"the client"}.
+Use the visible hand lines (heart 감정선, head 두뇌선, life 생명선, fate 운명선) and mounts.
+Their Saju context (do not contradict): ${facts}
+Write a warm, specific, mystical English reading in 4 short sections with markdown-free headings:
+LOVE LINE, MIND & TALENT, LIFE & HEALTH, FATE & FORTUNE. 2-3 sentences each. If the image is not a clear palm, say so kindly and ask for a clearer left-palm photo.`;
 export const META = (id:string)=>CATALOG.find(m=>m.id===id);
 
 const GEN=(a:number,b:number)=>(a+1)%5===b, CTRL=(a:number,b:number)=>(a+2)%5===b;

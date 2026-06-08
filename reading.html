@@ -72,12 +72,37 @@ function renderDash(){
   else{btn.className='lock';btn.textContent='Unlock $'+m.price;btn.onclick=()=>unlock(m.id);}
   d.appendChild(btn);grid.appendChild(d);});
 }
+function renderModule(c){
+ const v=document.getElementById('viewer');
+ v.innerHTML='<button class="back" onclick="document.getElementById(\'viewer\').innerHTML=\'\'">↺ close</button><h1 style="font-size:20px">'+c.title+'</h1>'+(c.intro?'<div class="sub">'+c.intro+'</div>':'')+c.sections.map(secHTML).join('');
+ v.scrollIntoView({behavior:'smooth'});
+}
 async function openModule(mod){
  const v=document.getElementById('viewer'); if(!v)return; v.innerHTML='<div class="sub">Reading the stars…</div>';
  try{ const r=await api('/api/reading/'+ID+'/module/'+mod);
-  const c=r.content; v.innerHTML='<button class="back" onclick="document.getElementById(\'viewer\').innerHTML=\'\'">↺ close</button><h1 style="font-size:20px">'+c.title+'</h1>'+(c.intro?'<div class="sub">'+c.intro+'</div>':'')+c.sections.map(secHTML).join('');
-  v.scrollIntoView({behavior:'smooth'});
+  if(r.needsPhoto){ renderUpload(mod); return; }
+  if(r.pending){ v.innerHTML='<div class="sub">✨ Preparing your reading… (a few seconds)</div>'; setTimeout(()=>pollModule(mod,0),2500); return; }
+  renderModule(r.content);
  }catch(e){ v.innerHTML='<div class="sub">Locked. '+(e.error||'')+'</div>'; }
+}
+async function pollModule(mod,n){
+ try{ const r=await api('/api/reading/'+ID+'/module/'+mod);
+  if(r.content){ renderModule(r.content); return; }
+  if(n<20) setTimeout(()=>pollModule(mod,n+1),2500);
+  else document.getElementById('viewer').innerHTML='<div class="sub">Still preparing — reopen in a moment.</div>';
+ }catch(e){ document.getElementById('viewer').innerHTML='<div class="sub">'+(e.error||'error')+'</div>'; }
+}
+function renderUpload(mod){
+ const v=document.getElementById('viewer');
+ v.innerHTML='<button class="back" onclick="document.getElementById(\'viewer\').innerHTML=\'\'">↺ close</button><h1 style="font-size:20px">✋ Palm Reading</h1><div class="sub">Upload a clear photo of your open <b>left palm</b> in good light.</div><input id="palmfile" type="file" accept="image/*" style="margin:14px 0;color:#fff;width:100%"/><button class="btn" id="palmgo">Read my palm</button><div id="palmstat" class="small"></div>';
+ document.getElementById('palmgo').onclick=async()=>{
+  const f=document.getElementById('palmfile').files[0]; const st=document.getElementById('palmstat'); if(!f)return;
+  if(f.size>5000000){ st.textContent='Image too large (max 5MB).'; return; }
+  st.textContent='✨ Reading your palm…';
+  const b64=await new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(String(rd.result).split(',')[1]);rd.readAsDataURL(f);});
+  try{ const r=await api('/api/reading/'+ID+'/palm',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:b64,mime:f.type})}); renderModule(r.content); }
+  catch(e){ st.textContent=(e.error||'Could not read photo.'); }
+ };
 }
 async function unlock(mod){
  const r=await api('/api/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({module:mod,readingId:ID})});

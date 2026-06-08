@@ -28,6 +28,9 @@ db.run(`CREATE TABLE IF NOT EXISTS entitlements(
 db.run(`CREATE TABLE IF NOT EXISTS module_cache(
   reading_id TEXT, module TEXT, json TEXT,
   PRIMARY KEY(reading_id, module) )`);
+// 결제 intent (라이브: checkout→webhook 정합성 연결)
+db.run(`CREATE TABLE IF NOT EXISTS intents(
+  id TEXT PRIMARY KEY, reading_id TEXT, module TEXT, status TEXT, order_id TEXT, created_at INTEGER )`);
 
 export const newId = () => randomBytes(18).toString("base64url"); // 추측불가 매직링크
 
@@ -54,6 +57,12 @@ export function listByEmail(email:string):ReadingRow[]{
 export function hasEvent(eventId:string):boolean{ return !!db.query(`SELECT 1 FROM events WHERE event_id=?`).get(eventId); }
 export function markEvent(eventId:string){ db.run(`INSERT OR IGNORE INTO events(event_id,at) VALUES(?,?)`,[eventId,Date.now()]); }
 export function clearModuleCache(readingId:string){ db.run(`DELETE FROM module_cache WHERE reading_id=?`,[readingId]); }
+// 결제 intent
+export function createIntent(readingId:string, module:string):string{
+  const id=newId(); db.run(`INSERT INTO intents(id,reading_id,module,status,created_at) VALUES(?,?,?,?,?)`,[id,readingId,module,"pending",Date.now()]); return id;
+}
+export function getIntent(id:string):any{ return db.query(`SELECT * FROM intents WHERE id=?`).get(id)??null; }
+export function markIntentPaid(id:string, orderId:string){ db.run(`UPDATE intents SET status='paid', order_id=? WHERE id=?`,[orderId,id]); }
 // 모듈 해금/조회
 export function grantModule(readingId:string, module:string, orderId?:string){
   db.run(`INSERT OR IGNORE INTO entitlements(reading_id,module,order_id,created_at) VALUES(?,?,?,?)`,[readingId,module,orderId??null,Date.now()]);

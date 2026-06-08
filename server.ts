@@ -10,8 +10,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { computeSaju, ANIMALS, ANIMAL_EMOJI, ELEM_EN, ELEM_CN, BRANCHES } from "./saju.ts";
 import { buildReading } from "./reading.ts";
 import { generateNames } from "./names.ts";
-import { CATALOG, META, buildModule } from "./modules.ts";
-import { enrichReading, factsText, enrichEnabled } from "./enrich.ts";
+import { CATALOG, META, buildModule, PALM_PROMPT } from "./modules.ts";
+import { enrichReading, enrichVision, factsText, enrichEnabled } from "./enrich.ts";
 import * as db from "./db.ts";
 
 const DIR=import.meta.dir;
@@ -58,12 +58,22 @@ async function moduleContent(id:string, mod:string){
   if(enr){ content.sections=content.sections.map((s:any,i:number)=>({...s,body:sanitize(enr["s"+i]||s.body)})); content.enriched=true; }
   db.setModuleCache(id,mod,content); return content;
 }
+// C: 비동기 프리워밍 — 결제/이름선택 직후 백그라운드로 풍부화 미리 굽기(첫 열람 즉시화)
+const inFlight=new Set<string>();
+function prewarm(id:string, mod:string){
+  if(mod==="palm") return; // 손금은 사진 필요 → 프리워밍 X
+  const k=id+":"+mod; if(db.getModuleCache(id,mod)||inFlight.has(k)) return;
+  inFlight.add(k); moduleContent(id,mod).catch(e=>console.error("[prewarm]",e)).finally(()=>inFlight.delete(k));
+}
+// D: 모듈별 Lemon variant (없으면 기본). 라이브에서 LS_VARIANT_CORE / _MONTHLY_2026 ... 로 설정
+const moduleVariant=(id:string)=>process.env["LS_VARIANT_"+id.toUpperCase()]||LS_VARIANT;
 
-async function lemonCheckout(custom:Record<string,string>):Promise<string>{
+async function lemonCheckout(custom:Record<string,string>, variantId:string):Promise<string>{
   const res=await fetch("https://api.lemonsqueezy.com/v1/checkouts",{method:"POST",
     headers:{Authorization:`Bearer ${LS_KEY}`,"Content-Type":"application/vnd.api+json",Accept:"application/vnd.api+json"},
-    body:JSON.stringify({data:{type:"checkouts",attributes:{checkout_data:{custom}},
-      relationships:{store:{data:{type:"stores",id:LS_STORE}},variant:{data:{type:"variants",id:LS_VARIANT}}}}})});
+    body:JSON.stringify({data:{type:"checkouts",
+      attributes:{checkout_data:{custom}, product_options:{redirect_url:`${process.env.PUBLIC_URL||""}/r/${custom.readingId}`}},
+      relationships:{store:{data:{type:"stores",id:LS_STORE}},variant:{data:{type:"variants",id:variantId}}}}})});
   const j:any=await res.json(); return j?.data?.attributes?.url||"/?error=checkout";
 }
 async function verifyWebhook(raw:string,sig:string){
@@ -86,11 +96,13 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
       if(mod==="core"){
         const {b,name,email}=validate(body); const id=db.createReading({...b,name},email??undefined, TEST_MODE?1:0);
         if(TEST_MODE){ db.grantModule(id,"core"); return json({url:`/r/${id}`,mode:"test"}); }
-        return json({url:await lemonCheckout({readingId:id,module:"core"}),mode:"live"});
+        const intent=db.createIntent(id,"core");
+        return json({url:await lemonCheckout({readingId:id,module:"core",intent}, moduleVariant("core")!),mode:"live"});
       } else { // 애드온: 기존 리딩에 부여
         const readingId=String(body.readingId||""); const row=db.getReading(readingId); if(!row) throw new BadInput("no reading");
-        if(TEST_MODE){ db.grantModule(readingId,mod); return json({url:`/r/${readingId}?open=${mod}`,mode:"test"}); }
-        return json({url:await lemonCheckout({readingId,module:mod}),mode:"live"});
+        if(TEST_MODE){ db.grantModule(readingId,mod); prewarm(readingId,mod); return json({url:`/r/${readingId}?open=${mod}`,mode:"test"}); }
+        const intent=db.createIntent(readingId,mod);
+        return json({url:await lemonCheckout({readingId,module:mod,intent}, moduleVariant(mod)!),mode:"live"});
       }
     }
     // 리딩 메타(대시보드)
@@ -98,14 +110,29 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
       const parts=path.split("/"); const id=parts[3];
       const row=db.getReading(id); if(!row) return json({error:"not found"},404);
       if(!row.paid) return json({error:"unpaid"},402);
-      // 모듈 콘텐츠
+      // 모듈 콘텐츠 (C: 캐시 있으면 즉시, 없으면 프리워밍 후 pending → 프론트 폴링)
       if(parts[4]==="module"&&parts[5]){
-        const mod=parts[5]; if(!META(mod)) return json({error:"bad module"},400);
-        if(!db.hasModule(id,mod)) return json({locked:true,meta:META(mod)},402);
-        return json({module:mod, content: await moduleContent(id,mod)});
+        const mod=parts[5]; const m=META(mod); if(!m) return json({error:"bad module"},400);
+        if(!db.hasModule(id,mod)) return json({locked:true,meta:m},402);
+        const cached=db.getModuleCache(id,mod);
+        if(cached) return json({module:mod, content:cached});
+        if(m.needsPhoto) return json({needsPhoto:true, meta:m});   // 손금: 사진 필요
+        prewarm(id,mod); return json({pending:true, meta:m}, 202);  // 비동기 준비중
+      }
+      // 손금/관상 업로드 (B: Gemini Vision)
+      if(parts[4]==="palm"&&req.method==="POST"){
+        if(!db.hasModule(id,"palm")) return json({locked:true,meta:META("palm")},402);
+        const body=await req.json().catch(()=>({})); const img=String(body.image||""); const mime=String(body.mime||"image/jpeg");
+        if(!img||img.length>8_000_000) throw new BadInput("bad image");
+        const birth=JSON.parse(row.birth_json); const c=computeSaju(birth);
+        const reading=await enrichVision(img,mime,PALM_PROMPT(factsText(c), row.korean_name||birth.name));
+        const content={title:"AI Palm Reading", intro:"What your hand reveals.",
+          sections: reading? [{title:"Your Palm",verdict:"",body:sanitize(reading).replace(/\n/g,"<br/>")}]
+            : [{title:"Couldn't read the photo",verdict:"",body:"Please upload a clearer photo of your open left palm in good light."}]};
+        db.setModuleCache(id,"palm",content); return json({module:"palm",content});
       }
       // 이름 선택 저장
-      if(parts[4]==="name"&&req.method==="POST"){ const b=await req.json().catch(()=>({})); const kr=sanitize(String(b.kr||"")).slice(0,20); if(kr){db.setKoreanName(id,kr); db.clearModuleCache(id);} return json({ok:true}); }
+      if(parts[4]==="name"&&req.method==="POST"){ const b=await req.json().catch(()=>({})); const kr=sanitize(String(b.kr||"")).slice(0,20); if(kr){db.setKoreanName(id,kr); db.clearModuleCache(id); prewarm(id,"core");} return json({ok:true}); }
       // 메타
       db.touchViewed(id); const birth=JSON.parse(row.birth_json); const c=computeSaju(birth); const x=chartCommon(c);
       const ent=db.entitlements(id);
@@ -120,11 +147,15 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
       const ev=JSON.parse(raw); const eid=ev?.meta?.event_id||ev?.data?.id;
       if(eid&&db.hasEvent(eid)) return json({ok:true}); // 멱등(이미 처리)
       const evName=req.headers.get("X-Event-Name")||ev?.meta?.event_name;
-      const attr=ev?.data?.attributes||{}; const cd=ev?.meta?.custom_data||{}; const orderId=ev?.data?.id;
-      // 주문 정합성 검증: 이벤트·결제완료·스토어 일치 (variant↔module 매핑은 라이브 전 항목)
-      if(evName==="order_created" && attr.status==="paid" && cd.readingId && cd.module
+      const attr=ev?.data?.attributes||{}; const cd=ev?.meta?.custom_data||{}; const orderId=String(ev?.data?.id||"");
+      const intent=cd.intent? db.getIntent(String(cd.intent)): null;
+      // 정합성: 이벤트·결제완료·스토어 일치 + intent 존재 → intent 기준 grant
+      if(evName==="order_created" && attr.status==="paid" && intent && intent.status!=="paid"
          && (!LS_STORE || String(attr.store_id)===String(LS_STORE))){
-        db.markPaidByOrder(cd.readingId,String(orderId)); db.grantModule(cd.readingId,cd.module,String(orderId));
+        db.markIntentPaid(intent.id, orderId);
+        db.markPaidByOrder(intent.reading_id, orderId);
+        db.grantModule(intent.reading_id, intent.module, orderId);
+        prewarm(intent.reading_id, intent.module);
       }
       // TODO(live): evName==="order_refunded" → entitlement revoke
       if(eid) db.markEvent(eid); // grant 성공 후 mark
