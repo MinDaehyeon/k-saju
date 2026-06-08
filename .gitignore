@@ -1,0 +1,9 @@
+ksaju.db
+ksaju.db-wal
+ksaju.db-shm
+*.db
+*.log
+.env
+node_modules/
+.DS_Store
+data/

@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>K-Saju · Your Reading</title>
+<style>
+ :root{--gold:#e9c46a;--gold2:#f4d58d;--muted:#9aa0c3}
+ *{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
+  background:radial-gradient(1200px 600px at 50% -10%,#2a2160 0%,transparent 60%),linear-gradient(180deg,#0d1023,#161a3a);
+  display:flex;justify-content:center;padding:20px}
+ .wrap{width:100%;max-width:460px}
+ .card{background:linear-gradient(180deg,rgba(36,30,82,.92),rgba(18,18,46,.96));border:1px solid rgba(233,196,106,.35);
+  border-radius:24px;padding:24px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:10px 0}
+ .han{font-size:12px;letter-spacing:7px;color:var(--gold);opacity:.85;text-align:center}
+ h1{margin:6px 0;font-size:24px;text-align:center;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+ .sub{color:var(--muted);font-size:12px;text-align:center;font-style:italic}
+ .saju{display:flex;gap:7px;justify-content:center;margin:14px 0}
+ .gz{background:rgba(0,0,0,.3);border:1px solid rgba(233,196,106,.3);border-radius:10px;padding:8px 3px;flex:1;text-align:center}
+ .gz .h{font-size:20px;color:#fff}.gz .s{font-size:9px;color:var(--muted);margin-top:3px}
+ .mod{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.22);border:1px solid rgba(233,196,106,.2);border-radius:14px;padding:13px;margin:9px 0}
+ .mod .em{font-size:26px}.mod .t{flex:1}.mod .tt{color:#fff;font-size:15px}.mod .te{color:var(--muted);font-size:11px;margin-top:2px}
+ .open{background:linear-gradient(90deg,var(--gold),var(--gold2));color:#241a00;border:none;border-radius:10px;padding:9px 14px;font-weight:bold;cursor:pointer;font-size:13px}
+ .lock{background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px;font-weight:bold}
+ .sec{margin:14px 0;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07)}
+ .sec h3{color:var(--gold2);font-size:13px;letter-spacing:.5px;margin:0 0 3px}.sec .v{color:var(--gold);font-size:13px;font-style:italic;margin-bottom:5px}
+ .sec p{margin:0;line-height:1.62;font-size:14.5px;color:#e9e7ff}.sec b{color:var(--gold2)}
+ .nameopt{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border:1px solid rgba(233,196,106,.22);border-radius:14px;padding:12px;margin:8px 0;cursor:pointer}
+ .nameopt.sel,.nameopt:hover{border-color:var(--gold);background:rgba(233,196,106,.1)}
+ .nameopt .kr{font-size:24px;color:#fff;min-width:54px}.nameopt .ro{color:var(--gold2);font-size:13px}.nameopt .mn{color:var(--muted);font-size:11px}
+ .badge{font-size:10px;color:#241a00;background:var(--gold2);border-radius:7px;padding:1px 6px;margin-left:4px}
+ .listen{background:rgba(233,196,106,.15);border:1px solid rgba(233,196,106,.4);color:var(--gold);border-radius:50%;width:38px;height:38px;font-size:16px;cursor:pointer}
+ .btn{width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;font-weight:bold;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--gold2));margin-top:10px}
+ .small{color:var(--muted);font-size:11px;text-align:center;margin-top:14px}
+ .back{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--muted);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px}
+</style></head><body><div class="wrap"><div class="card" id="card">Loading your stars…</div></div>
+<script>
+const ID=location.pathname.split('/')[2];
+let D=null;
+const card=document.getElementById('card');
+async function api(p,opt){const r=await fetch(p,opt);if(!r.ok)throw await r.json().catch(()=>({error:r.status}));return r.json();}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){alert('🔊 '+t);}}
+function gz(h,s){return '<div class="gz"><div class="h">'+(h||'—')+'</div><div class="s">'+s+'</div></div>';}
+function secHTML(s){return '<div class="sec"><h3>'+s.title+'</h3>'+(s.verdict?'<div class="v">'+s.verdict+'</div>':'')+'<p>'+s.body+'</p></div>';}
+
+async function load(){
+ try{ D=await api('/api/reading/'+ID); }catch(e){ card.innerHTML='<div class="han">四 柱</div><h1>Reading not found</h1><div class="sub">This link may be invalid or unpaid.</div>'; return; }
+ if(D.needName){ renderNames(); return; }
+ renderDash();
+ const open=new URLSearchParams(location.search).get('open'); if(open) openModule(open);
+}
+function renderNames(){
+ card.innerHTML='<div class="han">作 名</div><h1>Choose your Korean name</h1><div class="sub">Picked for your Saju — 🔊 hear it</div><div id="nl"></div><button class="btn" id="go" disabled style="opacity:.5">Choose a name</button>';
+ const nl=document.getElementById('nl'); let chosen=null;
+ D.names.forEach((n,i)=>{const d=document.createElement('div');d.className='nameopt';d.id='n'+i;
+  d.innerHTML='<div class="kr">'+n.kr+'</div><div style="flex:1"><div class="ro">'+n.ro+' · '+n.hanja+(n.restoresMissing?'<span class="badge">restores '+n.elemName+'</span>':'')+'</div><div class="mn">'+n.meaning+'</div></div>';
+  const b=document.createElement('button');b.className='listen';b.textContent='🔊';b.onclick=(e)=>{e.stopPropagation();speak(n.kr);};
+  d.onclick=()=>{chosen=i;D.names.forEach((_,k)=>document.getElementById('n'+k).classList.toggle('sel',k===i));const g=document.getElementById('go');g.disabled=false;g.style.opacity='1';g.textContent='Continue as '+n.kr+' →';};
+  d.appendChild(b);nl.appendChild(d);});
+ document.getElementById('go').onclick=async()=>{ if(chosen==null)return; await api('/api/reading/'+ID+'/name',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kr:D.names[chosen].kr})}); await load(); };
+}
+function renderDash(){
+ const P=D.pillars;
+ let html='<div class="han">四 柱 八 字</div><h1>'+(D.koreanName||D.name)+'</h1>'+
+  '<div class="sub">'+D.dayMaster.en+' Day Master · '+D.zodiac.animal+' '+D.zodiac.emoji+' · '+D.strength+' chart</div>'+
+  '<div class="saju">'+gz(P.year,'Year')+gz(P.month,'Month')+gz(P.day,'Day')+gz(P.hour,'Hour')+'</div>'+
+  '<div id="viewer"></div><div id="grid"></div>'+
+  '<div class="small">🔖 Bookmark this page — your reading lives here forever.'+(D.enrichEnabled?'':' (LLM enrich off — add API credits for deeper prose)')+'</div>';
+ card.innerHTML=html;
+ const grid=document.getElementById('grid');
+ D.modules.forEach(m=>{const d=document.createElement('div');d.className='mod';
+  d.innerHTML='<div class="em">'+m.emoji+'</div><div class="t"><div class="tt">'+m.title+'</div><div class="te">'+m.teaser+'</div></div>';
+  const btn=document.createElement('button');
+  if(m.unlocked){btn.className='open';btn.textContent='Open';btn.onclick=()=>openModule(m.id);}
+  else{btn.className='lock';btn.textContent='Unlock $'+m.price;btn.onclick=()=>unlock(m.id);}
+  d.appendChild(btn);grid.appendChild(d);});
+}
+async function openModule(mod){
+ const v=document.getElementById('viewer'); if(!v)return; v.innerHTML='<div class="sub">Reading the stars…</div>';
+ try{ const r=await api('/api/reading/'+ID+'/module/'+mod);
+  const c=r.content; v.innerHTML='<button class="back" onclick="document.getElementById(\'viewer\').innerHTML=\'\'">↺ close</button><h1 style="font-size:20px">'+c.title+'</h1>'+(c.intro?'<div class="sub">'+c.intro+'</div>':'')+c.sections.map(secHTML).join('');
+  v.scrollIntoView({behavior:'smooth'});
+ }catch(e){ v.innerHTML='<div class="sub">Locked. '+(e.error||'')+'</div>'; }
+}
+async function unlock(mod){
+ const r=await api('/api/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({module:mod,readingId:ID})});
+ location.href=r.url; // test → /r/ID?open=mod ; live → Lemon checkout
+}
+load();
+</script></body></html>

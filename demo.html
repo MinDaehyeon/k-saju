@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K-Saju · Korean Star Reading</title>
+<style>
+  :root{ --gold:#e9c46a; --gold2:#f4d58d; --muted:#9aa0c3; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
+    background:radial-gradient(1200px 600px at 50% -10%,#2a2160 0%,transparent 60%),linear-gradient(180deg,#0d1023,#161a3a);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .wrap{width:100%;max-width:430px}
+  .card{background:linear-gradient(180deg,rgba(36,30,82,.92),rgba(18,18,46,.96));
+    border:1px solid rgba(233,196,106,.35);border-radius:24px;padding:28px 24px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center}
+  .han{font-size:12px;letter-spacing:7px;color:var(--gold);opacity:.85}
+  h1{margin:6px 0 2px;font-size:32px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:13px;font-style:italic;margin-bottom:18px}
+  label{display:block;text-align:left;font-size:11px;color:var(--muted);margin:12px 2px 6px;letter-spacing:.5px}
+  input{width:100%;padding:12px 13px;border-radius:11px;border:1px solid rgba(233,196,106,.25);background:rgba(0,0,0,.25);color:#fff;font-size:15px;font-family:inherit}
+  .btn{margin-top:18px;width:100%;padding:14px;border:none;border-radius:13px;cursor:pointer;font-size:15px;font-weight:bold;letter-spacing:.5px;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 8px 24px rgba(233,196,106,.3)}
+  .btn:active{transform:translateY(1px)}
+  .ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.15);box-shadow:none;margin-top:10px}
+  .screen{display:none;animation:fade .6s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+  .elem{font-size:50px;margin:4px 0}
+  .pill{font-size:20px;color:var(--gold);margin:0}
+  .tag{color:var(--muted);font-size:12px}
+  .read{text-align:left;line-height:1.62;font-size:14.5px;margin:14px 2px;color:#e9e7ff}
+  .read h3{color:var(--gold2);font-size:13px;letter-spacing:1px;margin:16px 0 4px;text-transform:uppercase}
+  .read b{color:var(--gold2)}
+  .saju{display:flex;gap:8px;justify-content:center;margin:14px 0}
+  .gz{background:rgba(0,0,0,.3);border:1px solid rgba(233,196,106,.3);border-radius:10px;padding:8px 4px;flex:1}
+  .gz .h{font-size:22px;color:#fff}
+  .gz .s{font-size:10px;color:var(--muted);margin-top:3px}
+  .nameopt{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border:1px solid rgba(233,196,106,.22);border-radius:14px;padding:13px;margin:10px 0;cursor:pointer;text-align:left;transition:.2s}
+  .nameopt:hover,.nameopt.sel{border-color:var(--gold);background:rgba(233,196,106,.1)}
+  .nameopt .kr{font-size:26px;color:#fff;min-width:64px}
+  .nameopt .meta{flex:1}
+  .nameopt .ro{color:var(--gold2);font-size:14px}
+  .nameopt .mn{color:var(--muted);font-size:12px}
+  .listen{background:rgba(233,196,106,.15);border:1px solid rgba(233,196,106,.4);color:var(--gold);border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer;flex-shrink:0}
+  .lock{position:relative;margin-top:16px;border-radius:14px;overflow:hidden;border:1px solid rgba(233,196,106,.3)}
+  .lock .blur{filter:blur(5px);opacity:.45;padding:16px;text-align:left;font-size:13px;line-height:1.5}
+  .lock .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(13,16,35,.25),rgba(13,16,35,.9))}
+  .pay{padding:12px 22px;border-radius:30px;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#241a00;font-weight:bold;border:none;cursor:pointer;font-size:15px}
+  .small{color:var(--muted);font-size:11px;margin-top:16px}
+  .note{color:var(--gold2);font-size:11px;background:rgba(233,196,106,.08);border-radius:8px;padding:8px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+
+  <!-- 0. FREE INPUT -->
+  <div id="s_form" class="screen on">
+    <div class="han">韓 國 四 柱</div>
+    <h1>K-SAJU</h1>
+    <div class="sub">Korean Star Reading · 1,000 years of destiny</div>
+    <p style="font-size:14px;color:#cfccf5;line-height:1.5">Western astrology = 1 of 12 signs.<br/>Korea reads the <b style="color:var(--gold2)">exact day you were born</b>.</p>
+    <label>YOUR NAME</label>
+    <input id="name" placeholder="e.g. Emma" />
+    <label>DATE OF BIRTH</label>
+    <input id="dob" type="date" value="1994-07-22" />
+    <button class="btn" onclick="toTeaser()">✦ Reveal my element (free) ✦</button>
+  </div>
+
+  <!-- 1. FREE TEASER -->
+  <div id="s_teaser" class="screen">
+    <div class="han" id="t_pillar_han">日 柱</div>
+    <div class="elem" id="t_emoji">🌊</div>
+    <p class="pill" id="t_pillar">Water Day Master</p>
+    <p class="tag" id="t_tag"></p>
+    <div class="read" id="t_line"></div>
+    <div class="lock">
+      <div class="blur">Your Four Pillars reveal your love destiny, your wealth years, the element you are missing, and the Korean name written in your stars…</div>
+      <div class="ov">
+        <div style="font-size:13px;margin-bottom:10px">🔒 Unlock your <b>full Saju</b> + your <b>Korean name</b></div>
+        <button class="pay" onclick="pay()">Unlock · $4.99</button>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Korean name · Love · Wealth · 2026</div>
+      </div>
+    </div>
+    <button class="btn ghost" onclick="show('s_form')">↺ Back</button>
+    <div class="small">For entertainment & self-reflection ✦ K-Saju</div>
+  </div>
+
+  <!-- 2. PAID: PICK KOREAN NAME -->
+  <div id="s_names" class="screen">
+    <div class="han">作 名</div>
+    <h1 style="font-size:24px">Your Korean Name</h1>
+    <div class="sub">Names that echo <b id="n_orig" style="color:var(--gold2)">your name</b> — pick the one that feels like you</div>
+    <div id="namelist"></div>
+    <div class="note">🔊 Tap the speaker to hear the real Korean pronunciation.</div>
+    <button class="btn" id="n_continue" onclick="toReading()" disabled style="opacity:.5">Choose a name to continue</button>
+  </div>
+
+  <!-- 3. PAID: REAL SAJU -->
+  <div id="s_reading" class="screen">
+    <div class="han">四 柱 八 字</div>
+    <h1 style="font-size:22px" id="r_korname">은하</h1>
+    <p class="tag" id="r_korsub">Eun-ha · 銀河</p>
+    <div class="saju" id="r_saju"></div>
+    <div class="read" id="r_body"></div>
+    <div class="lock">
+      <div class="blur">Your 10-year luck cycle (Dae-un) turns in 2027. The person who activates your wealth was born in the year of the… Your missing element can be restored by…</div>
+      <div class="ov">
+        <div style="font-size:12px;margin-bottom:8px">🔒 Full 80-year life chart + compatibility</div>
+        <button class="pay" onclick="alert('(demo) 다음 업셀: 평생 대운 + 궁합 리포트')">Unlock Life Chart · $9.99</button>
+      </div>
+    </div>
+    <button class="btn ghost" onclick="location.reload()">↺ Start over</button>
+    <div class="small">Day Pillar is really calculated from your birth date ✦ Full 만세력(month/hour pillars) in live version</div>
+  </div>
+
+</div></div>
+
+<script>
+// ---------- 60갑자 / 오행 ----------
+const STEM=[["甲","Gap","木","Wood"],["乙","Eul","木","Wood"],["丙","Byeong","火","Fire"],["丁","Jeong","火","Fire"],["戊","Mu","土","Earth"],["己","Gi","土","Earth"],["庚","Gyeong","金","Metal"],["辛","Sin","金","Metal"],["壬","Im","水","Water"],["癸","Gye","水","Water"]];
+const BR=[["子","Ja","Rat","🐀"],["丑","Chuk","Ox","🐂"],["寅","In","Tiger","🐅"],["卯","Myo","Rabbit","🐇"],["辰","Jin","Dragon","🐉"],["巳","Sa","Snake","🐍"],["午","O","Horse","🐎"],["未","Mi","Goat","🐐"],["申","Sin","Monkey","🐒"],["酉","Yu","Rooster","🐓"],["戌","Sul","Dog","🐕"],["亥","Hae","Pig","🐖"]];
+const EMOJI={Wood:"🌳",Fire:"🔥",Earth:"⛰️",Metal:"⚔️",Water:"🌊"};
+function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+
+// day-master reading per element (live version: AI writes this, far longer & personal)
+const READ={
+ Wood:["the Tree","You are <b>Wood</b> — a tree that grows straight for the light. People lean on your shade and your sense of right and wrong is unbendable.","A tree that never bends cracks in the storm. In 2026 you must learn to grow <b>sideways</b>, not only up.","You love loyally and slowly. Your match is a <b>Water</b> person who waters your roots without flooding them.","Money comes when you stop carrying everyone. Your wealth year arrives when you finally <b>plant for yourself</b>."],
+ Fire:["the Sun","You are <b>Fire</b> — the Sun itself. You walk in and the room turns toward you; warmth pours out of you without effort.","The Sun cannot choose who it shines on — and you burn out on the wrong people. 2026 is the year you <b>choose your own orbit</b>.","You fall fast and bright. Your match is an <b>Earth</b> person who holds your heat without putting it out.","Your money follows your visibility. The year you stop hiding your work is the year wealth finds you."],
+ Earth:["the Mountain","You are <b>Earth</b> — an immovable mountain. When everyone panics, you are the one who does not move. People build their lives on you.","Mountains are lonely at the summit. In 2026 someone wants to <b>climb you, not hide behind you</b> — let them.","You love like bedrock: quiet, total, permanent. Your match is a <b>Fire</b> soul who brings warmth to your stone.","You grow rich slowly and keep it. Patience is your superpower — your wealth compounds after 35."],
+ Metal:["the Blade","You are <b>Metal</b> — unforged steel. Sharp mind, sharper instincts, a sense of justice you cannot switch off.","Raw metal cuts its own hand. 2026 is your <b>forging year</b> — heat and pressure, then a blade that finally serves you.","You guard your heart in armor. Your match is a <b>Water</b> person who flows past your edges instead of fighting them.","Your money comes from precision — one sharp decision worth a thousand busy ones. Don't quit before the forge."],
+ Water:["the Ocean","You are <b>Water</b> — a deep ocean no one fully reads. You adapt, you flow, and you hide whole storms beneath a calm surface.","Water with no shore floods everything. 2026 gives you <b>banks</b> — a structure, a person, a place to hold your depth.","You feel everything twice. Your match is a <b>Wood</b> soul who gives your flow a direction to run toward.","Your wealth moves in tides — feast then drought. The year you build a <b>reservoir</b> (savings, a system) is the year you stop drowning."]
+};
+
+// name options (live version: AI generates from the real name's sound + your missing element)
+const NAMES={
+ emma:[["은하","Eun-ha","銀河","Galaxy · Silver River","水 Water"],["예나","Ye-na","藝娜","Graceful & artful","木 Wood"],["해미","Hae-mi","海美","Beauty of the sea","水 Water"]],
+ _default:[["하린","Ha-rin","河潾","Clear flowing river","水 Water"],["지우","Ji-u","智宇","Wise universe","土 Earth"],["서연","Seo-yeon","瑞延","Auspicious grace","金 Metal"]]
+};
+
+let chosen=null, curNames=[];
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0);}
+
+function dayPillar(){
+ const dob=document.getElementById('dob').value||"1994-07-22";
+ const [y,m,d]=dob.split('-').map(Number);
+ const j=jdn(y,m,d);
+ const st=STEM[(j+9)%10], br=BR[(j+1)%12];
+ const yearBr=BR[((y-4)%12+12)%12];
+ return {st,br,yearBr,el:st[3]};
+}
+
+function toTeaser(){
+ const p=dayPillar(), nm=(document.getElementById('name').value||'Traveler').trim();
+ document.getElementById('t_emoji').textContent=EMOJI[p.el];
+ document.getElementById('t_pillar').textContent=p.el+" Day Master — "+READ[p.el][0];
+ document.getElementById('t_tag').textContent="Day Pillar "+p.st[0]+p.br[0]+" · "+p.st[1]+"-"+p.br[1]+" · born in the year of the "+p.yearBr[2]+" "+p.yearBr[3];
+ document.getElementById('t_line').innerHTML="<b>"+nm+"</b>, the Korean pillars say:<br/><br/>"+READ[p.el][1];
+ show('s_teaser');
+}
+
+function pay(){
+ // (demo) real version: Stripe / Lemon Squeezy checkout here
+ const nm=(document.getElementById('name').value||'Traveler').trim();
+ document.getElementById('n_orig').textContent=nm;
+ const key=nm.toLowerCase();
+ curNames=NAMES[key]||NAMES._default;
+ const list=document.getElementById('namelist'); list.innerHTML='';
+ curNames.forEach((n,i)=>{
+  const div=document.createElement('div'); div.className='nameopt'; div.id='nm'+i;
+  div.onclick=()=>pick(i);
+  div.innerHTML='<div class="kr">'+n[0]+'</div><div class="meta"><div class="ro">'+n[1]+' · '+n[2]+'</div><div class="mn">'+n[3]+' &nbsp;|&nbsp; '+n[4]+'</div></div>';
+  const b=document.createElement('button'); b.className='listen'; b.textContent='🔊';
+  b.onclick=(e)=>{e.stopPropagation();speak(n[0]);};
+  div.appendChild(b); list.appendChild(div);
+ });
+ if(key!=='emma'){const nt=document.createElement('div');nt.className='note';nt.style.marginTop='4px';nt.innerHTML='✨ Demo names. Live version: AI crafts names that echo <b>'+nm+'</b>’s exact sound.';list.appendChild(nt);}
+ show('s_names');
+}
+
+function pick(i){
+ chosen=i;
+ curNames.forEach((_,k)=>document.getElementById('nm'+k).classList.toggle('sel',k===i));
+ const b=document.getElementById('n_continue'); b.disabled=false; b.style.opacity='1';
+ b.textContent='Continue as '+curNames[i][0]+' →';
+}
+
+function speak(txt){
+ try{const u=new SpeechSynthesisUtterance(txt);u.lang='ko-KR';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){alert('🔊 '+txt+' (Korean voice)');}
+}
+
+function toReading(){
+ if(chosen===null)return;
+ const n=curNames[chosen], p=dayPillar(), nm=(document.getElementById('name').value||'Traveler').trim();
+ document.getElementById('r_korname').textContent=n[0];
+ document.getElementById('r_korsub').innerHTML=n[1]+' · '+n[2]+' · <span style="color:var(--muted)">'+nm+'’s star-name</span>';
+ // 사주 pillars (day + year real; month/hour = live)
+ document.getElementById('r_saju').innerHTML=
+   gz(p.yearBr[0],'Year '+p.yearBr[2])+gz('?','Month')+gz(p.st[0]+p.br[0],'Day '+p.el)+gz('?','Hour');
+ const R=READ[p.el];
+ document.getElementById('r_body').innerHTML=
+   '<h3>◆ Who you are</h3>'+R[1]+
+   '<h3>◆ Your shadow & 2026</h3>'+R[2]+
+   '<h3>◆ Love</h3>'+R[3]+
+   '<h3>◆ Wealth</h3>'+R[4]+
+   '<p style="margin-top:14px;color:var(--gold2)">'+n[0]+' ('+n[3]+') carries '+n[4]+' — '+
+     (n[4][0]===p.st[2][0]?'the same element as your Day Master, doubling your nature.':'the element that balances your '+p.el+' chart. A wise choice.')+'</p>';
+ show('s_reading');
+}
+function gz(h,s){return '<div class="gz"><div class="h">'+h+'</div><div class="s">'+s+'</div></div>';}
+</script>
+</body>
+</html>

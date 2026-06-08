@@ -1,0 +1,32 @@
+# Render.com 배포 (Docker + 영속 디스크). render.com → New → Blueprint → 이 repo 선택.
+services:
+  - type: web
+    name: k-saju
+    runtime: docker
+    plan: starter            # 영속 디스크는 유료 플랜 필요
+    healthCheckPath: /app.html
+    envVars:
+      - key: PORT
+        value: "8912"
+      - key: KSAJU_SECRET
+        generateValue: true
+      - key: PAYMENT_MODE
+        value: "test"        # 라이브 결제 켤 때 "live" + 아래 키들 설정
+      - key: GEMINI_API_KEY
+        sync: false          # 대시보드에서 입력(풍부화)
+      - key: ANTHROPIC_API_KEY
+        sync: false          # (선택) 있으면 우선 사용
+      - key: LEMONSQUEEZY_API_KEY
+        sync: false
+      - key: LEMONSQUEEZY_STORE_ID
+        sync: false
+      - key: LEMONSQUEEZY_VARIANT_ID
+        sync: false
+      - key: LEMONSQUEEZY_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false          # (선택) 이메일 매직링크
+    disk:
+      name: ksaju-data
+      mountPath: /app/data
+      sizeGB: 1

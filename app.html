@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>K-Saju · Korean Star Reading</title>
+<style>
+ :root{--gold:#e9c46a;--gold2:#f4d58d;--muted:#9aa0c3}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
+  background:radial-gradient(1200px 600px at 50% -10%,#2a2160 0%,transparent 60%),linear-gradient(180deg,#0d1023,#161a3a);
+  display:flex;align-items:flex-start;justify-content:center;padding:20px}
+ .wrap{width:100%;max-width:440px}
+ .card{background:linear-gradient(180deg,rgba(36,30,82,.92),rgba(18,18,46,.96));border:1px solid rgba(233,196,106,.35);
+  border-radius:24px;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center;margin:10px 0}
+ .han{font-size:12px;letter-spacing:7px;color:var(--gold);opacity:.85}
+ h1{margin:6px 0 2px;font-size:30px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+ .sub{color:var(--muted);font-size:13px;font-style:italic;margin-bottom:16px}
+ label{display:block;text-align:left;font-size:11px;color:var(--muted);margin:12px 2px 5px;letter-spacing:.5px}
+ input,select{width:100%;padding:12px;border-radius:11px;border:1px solid rgba(233,196,106,.25);background:rgba(0,0,0,.25);color:#fff;font-size:15px;font-family:inherit}
+ .row2{display:flex;gap:10px}.row2>div{flex:1}
+ .btn{margin-top:16px;width:100%;padding:14px;border:none;border-radius:13px;cursor:pointer;font-size:15px;font-weight:bold;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 8px 24px rgba(233,196,106,.3)}
+ .btn:active{transform:translateY(1px)}
+ .ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.15);box-shadow:none;margin-top:10px}
+ .screen{display:none}.screen.on{display:block;animation:f .5s ease}@keyframes f{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+ .elem{font-size:46px;margin:4px 0}.pill{font-size:19px;color:var(--gold);margin:0}.tag{color:var(--muted);font-size:12px}
+ .saju{display:flex;gap:7px;justify-content:center;margin:14px 0}
+ .gz{background:rgba(0,0,0,.3);border:1px solid rgba(233,196,106,.3);border-radius:10px;padding:8px 3px;flex:1}
+ .gz .h{font-size:21px;color:#fff}.gz .s{font-size:9px;color:var(--muted);margin-top:3px}
+ .sec{text-align:left;margin:16px 0;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.07)}
+ .sec h3{color:var(--gold2);font-size:13px;letter-spacing:1px;margin:0 0 2px;text-transform:uppercase}
+ .sec .v{color:var(--gold);font-size:14px;font-style:italic;margin-bottom:6px}
+ .sec p{margin:0;line-height:1.6;font-size:14.5px;color:#e9e7ff}.sec b{color:var(--gold2)}
+ .nameopt{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border:1px solid rgba(233,196,106,.22);border-radius:14px;padding:12px;margin:9px 0;cursor:pointer;text-align:left}
+ .nameopt:hover,.nameopt.sel{border-color:var(--gold);background:rgba(233,196,106,.1)}
+ .nameopt .kr{font-size:25px;color:#fff;min-width:58px}.nameopt .ro{color:var(--gold2);font-size:14px}.nameopt .mn{color:var(--muted);font-size:11px}
+ .badge{display:inline-block;font-size:10px;color:#241a00;background:var(--gold2);border-radius:8px;padding:1px 6px;margin-left:4px}
+ .listen{background:rgba(233,196,106,.15);border:1px solid rgba(233,196,106,.4);color:var(--gold);border-radius:50%;width:40px;height:40px;font-size:17px;cursor:pointer;flex-shrink:0}
+ .lock{position:relative;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid rgba(233,196,106,.3)}
+ .lock .blur{filter:blur(5px);opacity:.45;padding:15px;text-align:left;font-size:13px}
+ .lock .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(13,16,35,.25),rgba(13,16,35,.9))}
+ .pay{padding:12px 22px;border-radius:30px;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#241a00;font-weight:bold;border:none;cursor:pointer;font-size:15px}
+ .small{color:var(--muted);font-size:11px;margin-top:14px}.err{color:#ff9a9a;font-size:13px;margin-top:10px}
+</style></head><body><div class="wrap"><div class="card">
+
+ <div id="s_form" class="screen on">
+  <div class="han">韓 國 四 柱</div><h1>K-SAJU</h1>
+  <div class="sub">Korean Star Reading · 1,000 years of destiny</div>
+  <p style="font-size:14px;color:#cfccf5;line-height:1.5">Western astrology = 1 of 12 signs.<br/>Korea reads the <b style="color:var(--gold2)">exact hour you were born</b>.</p>
+  <label>YOUR NAME</label><input id="name" placeholder="e.g. Emma" value="Emma"/>
+  <div class="row2"><div><label>BIRTH DATE</label><input id="dob" type="date" value="1994-07-22"/></div>
+   <div><label>TIME (optional)</label><input id="time" type="time" value="14:30"/></div></div>
+  <div class="row2"><div><label>GENDER</label><select id="gender"><option value="F">Female</option><option value="M">Male</option></select></div>
+   <div><label>&nbsp;</label><div style="font-size:11px;color:var(--muted);padding-top:10px">Seoul solar-time corrected ✦</div></div></div>
+  <button class="btn" onclick="toTeaser()">✦ Reveal my element (free) ✦</button>
+  <div id="formerr" class="err"></div>
+ </div>
+
+ <div id="s_teaser" class="screen">
+  <div class="elem" id="t_emoji">🌊</div>
+  <p class="pill" id="t_dm"></p><p class="tag" id="t_tag"></p>
+  <div class="sec" id="t_over" style="border:none"></div>
+  <div class="lock"><div class="blur">Your Four Pillars reveal your wealth years, your marriage destiny, the element you are missing, and the Korean name written in your stars…</div>
+   <div class="ov"><div style="font-size:13px;margin-bottom:10px">🔒 Unlock your <b>full Saju + 운세</b> + your <b>Korean name</b></div>
+    <button class="pay" onclick="pay()">Unlock · $4.99</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">Korean name · Wealth · Love · Marriage · 2026</div></div></div>
+  <button class="btn ghost" onclick="show('s_form')">↺ Back</button>
+  <div class="small">For entertainment & self-reflection ✦ K-Saju</div>
+ </div>
+
+ <div id="s_names" class="screen">
+  <div class="han">作 名</div><h1 style="font-size:22px">Your Korean Name</h1>
+  <div class="sub">Names that echo <b id="n_orig" style="color:var(--gold2)"></b> — chosen for your Saju</div>
+  <div id="namelist"></div>
+  <div class="small" style="color:var(--gold2)">🔊 Tap the speaker to hear the real Korean pronunciation.</div>
+  <button class="btn" id="n_go" onclick="toReading()" disabled style="opacity:.5">Choose a name</button>
+ </div>
+
+ <div id="s_reading" class="screen">
+  <div class="han">四 柱 八 字</div><h1 style="font-size:22px" id="r_kor"></h1><p class="tag" id="r_korsub"></p>
+  <div class="saju" id="r_saju"></div>
+  <div id="r_body"></div>
+  <button class="btn ghost" onclick="location.href='/app.html'">↺ New reading</button>
+  <div class="small" id="r_foot"></div>
+ </div>
+
+</div></div>
+<script>
+let DATA=null, CHOSEN=null;
+const $=(id)=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');scrollTo(0,0);}
+function birthParams(){
+ const d=$('dob').value, t=$('time').value||"12:00";
+ const [y,m,dd]=d.split('-'); const [h,mi]=t.split(':');
+ return {y,m,d:dd,h,min:mi,g:$('gender').value,name:$('name').value||"You"};
+}
+async function getJSON(path,p){const qs=new URLSearchParams(p).toString();const r=await fetch(path+'?'+qs);if(!r.ok)throw new Error((await r.json()).error||'error');return r.json();}
+async function toTeaser(){
+ $('formerr').textContent="";
+ if(!$('dob').value){$('formerr').textContent="Please enter your birth date.";return;}
+ try{ DATA=await getJSON('/api/saju/teaser',birthParams());
+  $('t_emoji').textContent=DATA.zodiac.emoji;
+  $('t_dm').textContent=DATA.dayMaster.en+" Day Master";
+  $('t_tag').textContent="Day "+DATA.pillars.day+" · born in the year of the "+DATA.zodiac.animal+" "+DATA.zodiac.emoji;
+  $('t_over').innerHTML="<p>"+DATA.reading.overview.body+"</p>";
+  show('s_teaser');
+ }catch(e){$('formerr').textContent=String(e.message||e);}
+}
+async function pay(){
+ const p=birthParams();
+ const r=await fetch('/api/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(p)});
+ const j=await r.json(); location.href=j.url; // test stub -> /app.html?paid=1&...
+}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){alert('🔊 '+t);}}
+function renderNames(){
+ $('n_orig').textContent=DATA.reading?DATA._name:'';
+ const list=$('namelist');list.innerHTML='';
+ DATA.names.forEach((n,i)=>{
+  const div=document.createElement('div');div.className='nameopt';div.id='nm'+i;div.onclick=()=>pick(i);
+  div.innerHTML='<div class="kr">'+n.kr+'</div><div style="flex:1"><div class="ro">'+n.ro+' · '+n.hanja+
+   (n.restoresMissing?'<span class="badge">restores '+n.elemName+'</span>':'')+'</div><div class="mn">'+n.meaning+'</div></div>';
+  const b=document.createElement('button');b.className='listen';b.textContent='🔊';b.onclick=(e)=>{e.stopPropagation();speak(n.kr);};
+  div.appendChild(b);list.appendChild(div);
+ });
+ show('s_names');
+}
+function pick(i){CHOSEN=i;DATA.names.forEach((_,k)=>$('nm'+k).classList.toggle('sel',k===i));const b=$('n_go');b.disabled=false;b.style.opacity='1';b.textContent='Continue as '+DATA.names[i].kr+' →';}
+function gz(h,s){return '<div class="gz"><div class="h">'+h+'</div><div class="s">'+s+'</div></div>';}
+function toReading(){
+ if(CHOSEN===null)return; const n=DATA.names[CHOSEN], R=DATA.reading;
+ $('r_kor').textContent=n.kr; $('r_korsub').innerHTML=n.ro+' · '+n.hanja+' · <span style="color:var(--muted)">'+n.meaning+'</span>';
+ const P=DATA.pillars;
+ $('r_saju').innerHTML=gz(P.year,'Year')+gz(P.month,'Month')+gz(P.day,'Day')+gz(P.hour||'—','Hour');
+ const order=['overview','personality','wealth','love','career','year2026','luck'];
+ $('r_body').innerHTML=order.map(k=>{const s=R[k];return '<div class="sec"><h3>'+s.title+'</h3><div class="v">'+s.verdict+'</div><p>'+s.body+'</p></div>';}).join('');
+ $('r_foot').innerHTML="사주팔자 computed from your exact birth time ✦ deterministic ✦ "+(DATA.meta.tzNote?("⚠ "+DATA.meta.tzNote):"K-Saju");
+ show('s_reading');
+}
+// 결제 후 복귀(?paid=1) => 이름 화면부터
+(async function(){
+ const q=new URLSearchParams(location.search);
+ if(q.get('token') && q.get('d')){
+  try{ DATA=await getJSON('/api/saju/full',{token:q.get('token'),y:q.get('y'),m:q.get('m'),d:q.get('d'),h:q.get('h'),min:q.get('min'),g:q.get('g'),name:q.get('name')});
+   DATA._name=q.get('name'); renderNames();
+  }catch(e){ show('s_form'); }
+ }
+})();
+</script></body></html>
