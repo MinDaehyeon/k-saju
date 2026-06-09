@@ -9,3 +9,9 @@ node_modules/
 data/
 cloudflared.exe
 serve.ts
+# 내부 모드·런치 문서 (공개 repo 제외 — 로컬에만)
+MANUAL.md
+LAUNCH.md
+GO-LIVE.md
+memory/
+handoff/
