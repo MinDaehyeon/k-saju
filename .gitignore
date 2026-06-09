@@ -7,3 +7,5 @@ ksaju.db-shm
 node_modules/
 .DS_Store
 data/
+cloudflared.exe
+serve.ts
