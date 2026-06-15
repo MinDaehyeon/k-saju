@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>K-Saju × K-Pop · Find your idol match</title>
+<meta property="og:title" content="Which K-pop idol is your Saju soulmate? 🇰🇷💜"/>
+<meta property="og:description" content="Korean fortune (Saju) tells you which K-pop idol matches your birth chart. Free."/>
+<style>
+ :root{--gold:#e9c46a;--gold2:#f4d58d;--pink:#ff86c8;--muted:#9aa0c3}
+ *{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
+  background:radial-gradient(1100px 600px at 50% -8%,#3a2168 0%,transparent 58%),linear-gradient(180deg,#0d1023,#191040);
+  display:flex;justify-content:center;padding:20px}
+ .wrap{width:100%;max-width:440px}
+ .card{background:linear-gradient(180deg,rgba(40,28,86,.92),rgba(18,16,46,.96));border:1px solid rgba(233,196,106,.32);
+  border-radius:24px;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:10px 0}
+ .han{font-size:12px;letter-spacing:6px;color:var(--gold);text-align:center;opacity:.85}
+ h1{margin:6px 0;font-size:25px;text-align:center;line-height:1.25;
+  background:linear-gradient(90deg,var(--gold),var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+ .sub{color:#d7d3f5;font-size:14px;text-align:center;margin-bottom:18px}
+ label{display:block;text-align:left;font-size:11px;color:var(--muted);margin:12px 2px 5px;letter-spacing:.5px}
+ input,select{width:100%;padding:12px;border-radius:11px;border:1px solid rgba(233,196,106,.25);background:rgba(0,0,0,.25);color:#fff;font-size:15px;font-family:inherit}
+ .row{display:flex;gap:10px}.row>div{flex:1}
+ .btn{margin-top:14px;width:100%;padding:14px;border:none;border-radius:13px;cursor:pointer;font-size:15px;font-weight:bold;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--pink));box-shadow:0 8px 24px rgba(255,134,200,.25)}
+ .btn:active{transform:translateY(1px)}
+ .or{text-align:center;color:var(--muted);font-size:12px;margin:14px 0 4px}
+ .search{position:relative}
+ .drop{position:absolute;left:0;right:0;top:100%;background:#1a1442;border:1px solid rgba(233,196,106,.3);border-radius:0 0 12px 12px;z-index:5;max-height:240px;overflow:auto}
+ .drop div{padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
+ .drop div:hover{background:rgba(233,196,106,.12)}.drop .g{color:var(--muted);font-size:11px}
+ .idol{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border:1px solid rgba(233,196,106,.2);border-radius:14px;padding:12px;margin:9px 0;cursor:pointer}
+ .idol:hover{border-color:var(--pink)}
+ .idol .sc{font-size:22px;font-weight:bold;color:var(--gold2);min-width:54px;text-align:center}
+ .idol .nm{font-size:16px;color:#fff}.idol .gr{font-size:12px;color:var(--muted)}.idol .ty{font-size:12px;color:var(--pink)}
+ .result{text-align:center}
+ .ring{font-size:46px;font-weight:bold;color:var(--gold2);margin:6px 0}
+ .ty2{font-size:20px;color:var(--pink);margin:0}
+ .rbody{text-align:left;line-height:1.6;font-size:15px;color:#e9e7ff;margin:16px 4px}
+ .fact{text-align:left;font-size:12px;color:var(--muted);background:rgba(0,0,0,.2);border-radius:10px;padding:8px 10px;margin:4px 0}
+ .cta{display:block;margin-top:16px;padding:14px;border-radius:13px;text-align:center;text-decoration:none;font-weight:bold;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+ .ghost{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--muted)}
+ .small{color:var(--muted);font-size:11px;text-align:center;margin-top:16px}
+ .err{color:#ff9a9a;font-size:13px;text-align:center;margin-top:8px}
+</style></head><body><div class="wrap"><div class="card" id="card">
+ <div id="form">
+  <div class="han">韓 國 四 柱 × K-POP</div>
+  <h1>Which K-pop idol is<br/>your Saju soulmate? 🇰🇷💜</h1>
+  <div class="sub">1,300+ idols. Real Korean Four-Pillars math. Free.</div>
+  <div class="row">
+   <div><label>YOUR BIRTHDAY</label><input id="dob" type="date" value="2000-01-01"/></div>
+   <div><label>MATCH WITH</label><select id="gpref"><option value="">Any idol</option><option value="F">Female</option><option value="M">Male</option></select></div>
+  </div>
+  <button class="btn" onclick="findBest()">💜 Find my idol match</button>
+  <div class="or">— or check a specific bias —</div>
+  <div class="search">
+   <input id="q" placeholder="🔍 type an idol or group… (e.g. Jungkook, IVE)" oninput="searchIdol()" autocomplete="off"/>
+   <div class="drop" id="drop" style="display:none"></div>
+  </div>
+  <div id="err" class="err"></div>
+  <div class="small">For fun ✦ based on public birthdates ✦ not a real relationship prediction</div>
+ </div>
+ <div id="out"></div>
+</div></div>
+<script>
+const $=(id)=>document.getElementById(id);
+function birth(){const d=$('dob').value;if(!d){throw 0;}const [y,m,dd]=d.split('-');return {y,m,d:dd};}
+async function api(p){const r=await fetch(p);if(!r.ok)throw await r.json().catch(()=>({error:r.status}));return r.json();}
+function show(html){$('form').style.display='none';$('out').innerHTML=html;scrollTo(0,0);}
+function back(){$('form').style.display='block';$('out').innerHTML='';}
+
+async function findBest(){
+ $('err').textContent='';let b;try{b=birth();}catch{$('err').textContent='Enter your birthday first 🎂';return;}
+ const g=$('gpref').value;
+ $('out').innerHTML='<div class="sub">Reading 1,300+ charts…</div>';$('form').style.display='none';
+ try{ const r=await api(`/api/best-idols?y=${b.y}&m=${b.m}&d=${b.d}`+(g?`&gender=${g}`:''));
+  const cards=r.best.map(i=>`<div class="idol" onclick="openCompat(${i.id})"><div class="sc">${i.score}%</div><div style="flex:1"><div class="nm">${i.emoji} ${esc(i.stage)}</div><div class="gr">${esc(i.group||'soloist')}</div><div class="ty">${esc(i.type)}</div></div></div>`).join('');
+  show(`<div class="han">作 緣</div><h1 style="font-size:22px">Your Top Idol Matches 💜</h1><div class="sub">tap one for the full reading</div>${cards}<button class="btn ghost" onclick="back()">↺ start over</button>`);
+ }catch(e){back();$('err').textContent=(e.error||'error');}
+}
+let tmr;
+function searchIdol(){clearTimeout(tmr);const q=$('q').value.trim();const d=$('drop');if(q.length<2){d.style.display='none';return;}
+ tmr=setTimeout(async()=>{try{const r=await api('/api/idols?q='+encodeURIComponent(q));
+  if(!r.idols.length){d.style.display='none';return;}
+  d.innerHTML=r.idols.map(i=>`<div onclick="pickIdol(${i.id},'${esc(i.stage).replace(/'/g,'')}')">${esc(i.stage)} <span class="g">${esc(i.group||'')}</span></div>`).join('');
+  d.style.display='block';}catch{d.style.display='none';}},200);}
+function pickIdol(id){$('drop').style.display='none';openCompat(id);}
+async function openCompat(id){
+ $('err').textContent='';let b;try{b=birth();}catch{$('err').textContent='Enter your birthday first 🎂';return;}
+ $('form').style.display='none';$('out').innerHTML='<div class="sub">Reading your chemistry…</div>';
+ try{ const r=await api(`/api/compat?y=${b.y}&m=${b.m}&d=${b.d}&idol=${id}`);
+  const R=r.result, I=r.idol;
+  show(`<div class="result"><div class="han">宮 合</div>
+   <h1 style="font-size:21px">You × ${esc(I.stage)}</h1>
+   <div class="sub">${esc(I.group||'soloist')} · born ${esc(I.dob)}</div>
+   <div class="ring">${R.score}%</div><p class="ty2">${R.emoji} ${esc(R.type)}</p>
+   <div class="rbody">${esc(R.body)}</div>
+   ${R.factors.map(f=>`<div class="fact">✦ ${esc(f)}</div>`).join('')}
+   <a class="cta" href="/app.html">✨ Now get YOUR Korean name & full Saju →</a>
+   <button class="btn ghost" onclick="back()" style="margin-top:10px">↺ try another idol</button>
+   <div class="small">For fun ✦ public birthdates ✦ not a real relationship prediction</div></div>`);
+ }catch(e){back();$('err').textContent=(e.error||'error');}
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script></body></html>

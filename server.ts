@@ -12,7 +12,10 @@ import { buildReading } from "./reading.ts";
 import { generateNames } from "./names.ts";
 import { CATALOG, META, buildModule, PALM_PROMPT } from "./modules.ts";
 import { enrichReading, enrichVision, factsText, enrichEnabled } from "./enrich.ts";
+import { computeCompat, bestIdols } from "./compat.ts";
 import * as db from "./db.ts";
+
+const IDOLS:any[] = await Bun.file(import.meta.dir+"/idols.json").json(); // K-pop 아이돌 DB(사주 사전계산)
 
 const DIR=import.meta.dir;
 const PORT=Number(process.env.PORT||8912);
@@ -88,6 +91,25 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
   try{
     // 무료 티저
     if(path==="/api/saju/teaser"){ const {b,name}=validate(Object.fromEntries(url.searchParams)); return json(teaserPayload(b,name)); }
+
+    // ── K-pop 아이돌 궁합 (무료 — 바이럴 입구) ──
+    if(path==="/api/idols"){ // 검색(자동완성)
+      const q=(url.searchParams.get("q")||"").trim().toLowerCase();
+      const res=!q?[]:IDOLS.filter(i=>i.stage.toLowerCase().includes(q)||(i.group||"").toLowerCase().includes(q))
+        .slice(0,30).map(i=>({id:i.id,stage:i.stage,group:i.group,dob:i.dob}));
+      return json({idols:res});
+    }
+    if(path==="/api/best-idols"){ // 나와 가장 잘 맞는 아이돌
+      const {b}=validate(Object.fromEntries(url.searchParams)); const c=computeSaju(b);
+      const gender=url.searchParams.get("gender")||undefined;
+      return json({best:bestIdols(c,IDOLS,8,gender)});
+    }
+    if(path==="/api/compat"){ // 특정 아이돌과 나
+      const q=Object.fromEntries(url.searchParams); const {b}=validate(q); const c=computeSaju(b);
+      const idol=IDOLS.find(i=>String(i.id)===String(q.idol)); if(!idol||!idol.chart) return json({error:"idol not found"},404);
+      const r=computeCompat(c,idol.chart,{idolStage:idol.stage,idolAge:2026-idol.year});
+      return json({result:r, idol:{id:idol.id,stage:idol.stage,group:idol.group,dob:idol.dob}});
+    }
 
     // 체크아웃 (코어 신규 or 애드온 해금)
     if(path==="/api/checkout"&&req.method==="POST"){
@@ -167,8 +189,8 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
     // /r/:id → 대시보드
     if(path.startsWith("/r/")) return new Response(Bun.file(DIR+"/reading.html"));
     // 정적 — allowlist만 (DB/소스/.env 노출 차단)
-    const STATIC=new Set(["/","/app.html","/reading.html","/favicon.ico"]);
-    if(STATIC.has(path)){ const file=DIR+(path==="/"?"/app.html":path); const f=Bun.file(file); if(await f.exists()) return new Response(f); }
+    const STATIC=new Set(["/","/app.html","/reading.html","/idols.html","/favicon.ico"]);
+    if(STATIC.has(path)){ const file=DIR+(path==="/"?"/idols.html":path); const f=Bun.file(file); if(await f.exists()) return new Response(f); }
     return new Response("not found",{status:404});
   }catch(e:any){
     const bad=e instanceof BadInput; if(!bad) console.error("[server]",e);
