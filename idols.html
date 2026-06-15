@@ -2,7 +2,7 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>K-Saju × K-Pop · Find your idol match</title>
 <meta property="og:title" content="Which K-pop idol is your Saju soulmate? 🇰🇷💜"/>
-<meta property="og:description" content="Korean fortune (Saju) tells you which K-pop idol matches your birth chart. Free."/>
+<meta property="og:description" content="Korean fortune-telling meets Saju to reveal which K-pop idol matches your birth chart. Free."/>
 <style>
  :root{--gold:#e9c46a;--gold2:#f4d58d;--pink:#ff86c8;--muted:#9aa0c3}
  *{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
@@ -66,23 +66,23 @@
  <div id="form">
   <div class="han">韓 國 四 柱 × K-POP</div>
   <h1>Which K-pop idol is<br/>your Saju soulmate? 🇰🇷💜</h1>
-  <div class="sub">1,300+ idols. Real Korean Four-Pillars math. Free.</div>
+  <div class="sub">1,300+ idols. Real Korean Four Pillars logic. Free.</div>
   <div class="row">
    <div><label>YOUR BIRTHDAY</label><input id="dob" type="date" value="2000-01-01"/></div>
-   <div><label>MATCH WITH</label><select id="gpref"><option value="">Any idol</option><option value="F">Female</option><option value="M">Male</option></select></div>
+   <div><label>MATCH ME WITH</label><select id="gpref"><option value="">Any idol</option><option value="F">Female</option><option value="M">Male</option></select></div>
   </div>
   <div class="row">
-   <div><label>BIRTH TIME · 진태양시 (sharper)</label><input id="time" type="time" disabled/></div>
-   <div><label>&nbsp;</label><label class="notime"><input type="checkbox" id="notime" checked onchange="document.getElementById('time').disabled=this.checked"/> I don't know my time</label></div>
+   <div><label>BIRTH TIME · TRUE SOLAR TIME (sharper)</label><input id="time" type="time" disabled/></div>
+   <div><label>&nbsp;</label><label class="notime"><input type="checkbox" id="notime" checked onchange="document.getElementById('time').disabled=this.checked"/> I don't know my birth time</label></div>
   </div>
   <button class="btn" onclick="findBest()">💜 Find my idol match</button>
   <div class="or">— or check a specific bias —</div>
   <div class="search">
-   <input id="q" placeholder="🔍 type an idol or group… (e.g. Jungkook, IVE)" oninput="searchIdol()" autocomplete="off"/>
+   <input id="q" placeholder="🔍 Type an idol or group… e.g. Jungkook, IVE" oninput="searchIdol()" autocomplete="off"/>
    <div class="drop" id="drop" style="display:none"></div>
   </div>
   <div id="err" class="err"></div>
-  <div class="small">For fun ✦ based on public birthdates ✦ not a real relationship prediction</div>
+  <div class="small">For fun only ✦ based on public birthdates ✦ not a real relationship prediction</div>
  </div>
  <div id="out"></div>
 </div></div>
@@ -105,7 +105,7 @@ async function findBest(){
      <div class="ava sm" id="ava${i.id}"><span>${esc((i.stage||'?')[0])}</span></div>
      <div style="flex:1"><div class="nm">${esc(i.stage)}</div><div class="gr">${esc(i.group||'soloist')}</div><div class="ty">${i.emoji} ${esc(i.type)}</div></div>
      <div class="sc">${i.score}%</div></div>`).join('');
-  show(`<div class="han">作 緣</div><h1 style="font-size:22px">Your Top Idol Matches 💜</h1><div class="sub">tap one for the full reading</div>${cards}<button class="btn ghost" onclick="back()">↺ start over</button>`);
+  show(`<div class="han">作 緣</div><h1 style="font-size:22px">Your Top Idol Matches 💜</h1><div class="sub">Tap one for the full reading</div>${cards}<button class="btn ghost" onclick="back()">↺ Start over</button>`);
   r.best.forEach(i=>loadPhoto('ava'+i.id, i.stage, i.group));
  }catch(e){back();$('err').textContent=(e.error||'error');}
 }
@@ -136,9 +136,9 @@ async function openCompat(id){
    <div class="pc pull">💚 <b>What pulls you together:</b> ${esc(R.pull)}</div>
    <div class="pc caut">⚠️ <b>What to watch:</b> ${esc(R.caution)}</div>
    ${R.factors.map(f=>`<div class="fact">✦ ${esc(f)}</div>`).join('')}
-   <a class="cta" href="/app.html">✨ Now get YOUR Korean name & full Saju →</a>
-   <button class="btn ghost" onclick="back()" style="margin-top:10px">↺ try another idol</button>
-   <div class="small">For fun ✦ public birthdates ✦ not a real relationship prediction. Idol photo via Wikipedia.</div></div>`);
+   <a class="cta" href="/app.html">✨ Get your Korean name + full Saju reading →</a>
+   <button class="btn ghost" onclick="back()" style="margin-top:10px">↺ Try another idol</button>
+   <div class="small">For fun only ✦ based on public birthdates ✦ not a real relationship prediction. Idol photo via Wikipedia.</div></div>`);
   loadPhoto('idolAva', I.stage, I.group);
  }catch(e){back();$('err').textContent=(e.error||'error');}
 }

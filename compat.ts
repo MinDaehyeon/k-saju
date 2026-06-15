@@ -31,7 +31,7 @@ const band=(s:number,strong:string,mid:string,low:string)=> s>=80?strong : s>=65
 const TYPES:{[k:string]:[string,string]}={ // key -> [emoji, type name]
   soulmate:["✨","Destined Frequency"], cozy:["🍯","Cozy Harmony"], lift:["🌱","You Lift Each Other"],
   twin:["🔁","Twin Flames"], spicy:["🔥","Spicy Tension"], magnet:["⚡","Magnetic Push & Pull"], slow:["🌙","Slow-Burn Mystery"],
-  cheer:["💛","Fan-Cheer Energy"],
+  cheer:["💛","Fan Cheer Energy"],
 };
 
 export function computeCompat(user:SajuChart, idol:IdolChart, opts:{idolStage?:string; idolAge?:number; userHasTime?:boolean}={}):CompatResult{
@@ -46,33 +46,33 @@ export function computeCompat(user:SajuChart, idol:IdolChart, opts:{idolStage?:s
 
   // ── 차원 1) 💗 애정·끌림: 일간 천간합 + 일지(배우자궁) ──
   let romance=60;
-  if(isCheonhap(udm,idm)){ romance+=28; pos.push([28,`천간합 — your Day Masters ${STEMS[udm]}×${STEMS[idm]} bind (the rarest attraction in Saju)`]); }
-  else if(GEN(ue,ie)||GEN(ie,ue)){ romance+=12; pos.push([12,`one of you naturally nourishes the other (생)`]); }
+  if(isCheonhap(udm,idm)){ romance+=28; pos.push([28,`a Heavenly-Stem union (天干合) — your core selves magnetically bond, one of Saju's rarest attraction signs`]); }
+  else if(GEN(ue,ie)||GEN(ie,ue)){ romance+=12; pos.push([12,`one of you naturally nourishes the other (the Generating cycle of the elements)`]); }
   else if(ue===ie){ romance+=6; }
-  else if(CTRL(ue,ie)||CTRL(ie,ue)){ romance-=8; neg.push([8,`your Day Masters control each other (극) — a tug of wills`]); }
-  if(inSamhap(udb,idb)||isYukhap(udb,idb)){ romance+=16; pos.push([16,`your spouse-palaces (일지) lock in harmony — a deep, instinctive draw`]); }
-  else if(udb===idb){ romance+=7; pos.push([7,`same spouse-palace branch — you feel familiar fast`]); }
-  else if(isChung(udb,idb)){ romance-=12; neg.push([12,`spouse-palace clash (충) — intense, but volatile up close`]); }
+  else if(CTRL(ue,ie)||CTRL(ie,ue)){ romance-=8; neg.push([8,`your core elements test each other through the Controlling cycle — a quiet battle of wills`]); }
+  if(inSamhap(udb,idb)||isYukhap(udb,idb)){ romance+=16; pos.push([16,`your Spouse Palaces (the Day branch in Saju) click into harmony — a deep, instinctive draw`]); }
+  else if(udb===idb){ romance+=7; pos.push([7,`the same Spouse-Palace sign — you feel instantly familiar`]); }
+  else if(isChung(udb,idb)){ romance-=12; neg.push([12,`a Spouse-Palace clash — magnetic from afar, volatile up close`]); }
 
   // ── 차원 2) 💬 소통·바이브: 일간 오행 생극 + 월지(가치관) ──
   let vibe=60;
-  if(ue===ie){ vibe+=18; pos.push([10,`same element wavelength — you just *get* each other`]); }
+  if(ue===ie){ vibe+=18; pos.push([10,`the same elemental wavelength — you just *get* each other`]); }
   else if(GEN(ue,ie)||GEN(ie,ue)){ vibe+=14; }
   else if(CTRL(ue,ie)||CTRL(ie,ue)){ vibe-=10; }
-  if(inSamhap(umb,imb)||isYukhap(umb,imb)){ vibe+=12; pos.push([8,`matching life-values (월지 harmony) — same things matter to you both`]); }
+  if(inSamhap(umb,imb)||isYukhap(umb,imb)){ vibe+=12; pos.push([8,`your Month branches harmonize — the same things matter to you both`]); }
   else if(umb===imb){ vibe+=8; }
-  else if(isChung(umb,imb)){ vibe-=8; neg.push([6,`you value different things (월지 충) — needs talking through`]); }
+  else if(isChung(umb,imb)){ vibe-=8; neg.push([6,`your values run in different directions — worth talking through`]); }
 
   // ── 차원 3) 🌙 장기궁합·운명: 띠(년지) 삼합/육합 + 오행 보완 ──
   let longterm=58;
-  if(inSamhap(uyb,iyb)){ longterm+=22; pos.push([22,`삼합 zodiac trine (${ANIMALS[uyb]}×${ANIMALS[iyb]}) — a destiny-grade pairing`]); f.push(`삼합 trine`); }
-  else if(isYukhap(uyb,iyb)){ longterm+=18; pos.push([18,`육합 zodiac union — the classic "made to last" match`]); f.push(`육합 union`); }
+  if(inSamhap(uyb,iyb)){ longterm+=22; pos.push([22,`a zodiac Trine (三合) between your ${ANIMALS[uyb]} and ${ANIMALS[iyb]} signs — a pairing that feels fated`]); }
+  else if(isYukhap(uyb,iyb)){ longterm+=18; pos.push([18,`a Six-Harmony zodiac union (六合) — the classic "made to last" match`]); }
   else if(uyb===iyb){ longterm+=8; }
-  else if(isChung(uyb,iyb)){ longterm-=16; neg.push([16,`충 zodiac clash (${ANIMALS[uyb]} vs ${ANIMALS[iyb]}) — fireworks now, friction later`]); }
+  else if(isChung(uyb,iyb)){ longterm-=16; neg.push([16,`a zodiac clash between your ${ANIMALS[uyb]} and ${ANIMALS[iyb]} signs — fireworks now, friction later`]); }
   const fillsMe=user.elements.missing.filter(e=>idol.elem[e]>=2);
   const fillsThem=idol.miss.filter(e=>user.elements.count[e]>=2);
   if(fillsMe.length+fillsThem.length>0){ longterm+=Math.min(15,(fillsMe.length+fillsThem.length)*5);
-    pos.push([10,`you complete each other's missing ${[...new Set(fillsMe)].map(e=>ELEM_EN[e]).join("/")||iElem} energy`]); }
+    pos.push([10,`you help fill each other's missing ${[...new Set(fillsMe)].map(e=>ELEM_EN[e]).join("/")||iElem} energy`]); }
 
   // ── 차원 4) ⚡ 스파크·텐션: 충·극이 오히려 불꽃 ──
   let spark=56;
@@ -87,11 +87,11 @@ export function computeCompat(user:SajuChart, idol:IdolChart, opts:{idolStage?:s
 
   const dimensions:CompatDim[]=[
     { key:"romance", label:minor?"Adoration":"Romance & Attraction", emoji:"💗", score:R,
-      note:band(R,"magnetic, instant","warm and real","a slow, earned spark") },
+      note:band(R,"instant magnetism","warm and real","a slow, earned spark") },
     { key:"vibe", label:"Vibe & Communication", emoji:"💬", score:V,
-      note:band(V,"effortless flow","easy once you click","different languages of love") },
+      note:band(V,"effortless flow","easy once you click","different emotional languages") },
     { key:"longterm", label:minor?"Inspiration":"Long-term Harmony", emoji:"🌙", score:L,
-      note:band(L,"built to last","steady ground","grows with effort") },
+      note:band(L,"built to last","steady footing","grows with effort") },
     { key:"spark", label:"Spark & Tension", emoji:"⚡", score:S,
       note:band(S,"electric, never boring","playful heat","calm and gentle") },
   ];
@@ -117,16 +117,16 @@ export function computeCompat(user:SajuChart, idol:IdolChart, opts:{idolStage?:s
 
   let body:string;
   if(minor){
-    body=`Your ${uElem} energy and ${name}'s ${iElem} make pure fan-cheer chemistry — you'd hype each other up endlessly. A bond of support and good vibes, nothing more. 💛`;
+    body=`Your ${uElem} energy and ${name}'s ${iElem} create pure fan-cheer energy — you'd hype each other up endlessly. This reads as support, good vibes, and fan energy only. 💛`;
   } else {
     const flavor:{[k:string]:string}={
-      soulmate:`This is the rare one. Your ${uElem} Day Master and ${name}'s ${iElem} lock into a destined union — the pull Saju masters circle on a chart.`,
-      cozy:`Your charts settle into each other like a warm room. ${uElem} and ${iElem} just *fit* — easy, safe, the love you don't have to fight for.`,
-      lift:`One of you feeds the other's fire. ${uElem} and ${iElem} grow each other — you'd each become more *you* together.`,
+      soulmate:`This is the rare one. Your ${uElem} Day Master and ${name}'s ${iElem} lock into a destined union — the kind of pull a Saju reader would circle on the chart.`,
+      cozy:`Your charts feel like stepping into a warm room. ${uElem} and ${iElem} just *fit* — easy, safe, a connection you don't have to fight for.`,
+      lift:`One of you naturally fuels the other. ${uElem} and ${iElem} help each other grow — you'd each become more *you* together.`,
       twin:`Same element, same wavelength — two ${uElem} hearts. Intuitive and comfortable, though you'll both want to lead.`,
-      magnet:`Pure push and pull. ${uElem} bends ${iElem} (or the reverse) — frustrating, magnetic, never boring.`,
-      spicy:`Your zodiacs clash head-on (충) — and that's the spark. High tension, high heat, unforgettable.`,
-      slow:`No fireworks on day one — yours is a slow-burn. ${uElem} and ${iElem} reveal each other over time.`,
+      magnet:`A true push-pull dynamic. Your ${uElem} and ${iElem} energies challenge each other — frustrating, magnetic, never boring.`,
+      spicy:`Your zodiac signs clash head-on — and that's exactly the spark. High tension, high heat, unforgettable.`,
+      slow:`No fireworks on day one — yours is a slow burn. ${uElem} and ${iElem} open up to each other over time.`,
     };
     body=`${flavor[key]} What pulls you together: ${pull}. What to watch: ${caution}.`;
     if(opts.userHasTime===false) body+=` (Add your birth time for a sharper reading.)`;
