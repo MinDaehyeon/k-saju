@@ -38,6 +38,30 @@
  .ghost{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--muted)}
  .small{color:var(--muted);font-size:11px;text-align:center;margin-top:16px}
  .err{color:#ff9a9a;font-size:13px;text-align:center;margin-top:8px}
+ .chips{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+ .chip{background:rgba(0,0,0,.28);border:1px solid rgba(233,196,106,.25);border-radius:12px;padding:8px 12px;font-size:12px;color:#e9e7ff;text-align:center}
+ .chip b{display:block;color:var(--gold2);font-size:14px}
+ .vs{color:var(--pink);font-weight:bold}
+ .dim{text-align:left;margin:12px 2px}
+ .dlab{display:flex;justify-content:space-between;font-size:13px;color:#e9e7ff;margin-bottom:5px}
+ .dlab span{color:var(--gold2);font-weight:bold}
+ .dbar{height:9px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden}
+ .dbar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--pink))}
+ .dnote{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
+ .pc{text-align:left;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.5}
+ .pull{background:rgba(120,220,150,.1);border:1px solid rgba(120,220,150,.3);color:#cdeedd}
+ .caut{background:rgba(255,180,120,.08);border:1px solid rgba(255,180,120,.28);color:#f3ddc6}
+ .notime{display:flex;align-items:center;font-size:12px;color:var(--muted)}
+ .notime input{width:auto;margin-right:6px}
+ .pair{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 2px}
+ .ava{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 30% 28%,var(--c,#5b3f9e),#160f38);
+  border:2px solid var(--c,#7a5cc0);display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;
+  background-size:cover;background-position:center top;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.4);flex:0 0 auto}
+ .ava.sm{width:50px;height:50px;font-size:18px;border-width:1.5px}
+ .ava span{text-shadow:0 1px 5px rgba(0,0,0,.7);font-weight:bold}
+ .heart{font-size:30px;color:var(--pink);animation:beat 1.1s infinite}
+ @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+ .pname{font-size:11px;color:var(--muted);margin-top:5px;max-width:96px;text-align:center;line-height:1.2}
 </style></head><body><div class="wrap"><div class="card" id="card">
  <div id="form">
   <div class="han">韓 國 四 柱 × K-POP</div>
@@ -46,6 +70,10 @@
   <div class="row">
    <div><label>YOUR BIRTHDAY</label><input id="dob" type="date" value="2000-01-01"/></div>
    <div><label>MATCH WITH</label><select id="gpref"><option value="">Any idol</option><option value="F">Female</option><option value="M">Male</option></select></div>
+  </div>
+  <div class="row">
+   <div><label>BIRTH TIME · 진태양시 (sharper)</label><input id="time" type="time" disabled/></div>
+   <div><label>&nbsp;</label><label class="notime"><input type="checkbox" id="notime" checked onchange="document.getElementById('time').disabled=this.checked"/> I don't know my time</label></div>
   </div>
   <button class="btn" onclick="findBest()">💜 Find my idol match</button>
   <div class="or">— or check a specific bias —</div>
@@ -60,7 +88,10 @@
 </div></div>
 <script>
 const $=(id)=>document.getElementById(id);
-function birth(){const d=$('dob').value;if(!d){throw 0;}const [y,m,dd]=d.split('-');return {y,m,d:dd};}
+function birth(){const d=$('dob').value;if(!d){throw 0;}const [y,m,dd]=d.split('-');
+ let h='',min='';if(!$('notime').checked&&$('time').value){const t=$('time').value.split(':');h=t[0];min=t[1];}
+ return {y,m,d:dd,h,min};}
+function bq(b){let q=`y=${b.y}&m=${b.m}&d=${b.d}`;if(b.h!==''){q+=`&h=${b.h}&min=${b.min}`;}return q;}
 async function api(p){const r=await fetch(p);if(!r.ok)throw await r.json().catch(()=>({error:r.status}));return r.json();}
 function show(html){$('form').style.display='none';$('out').innerHTML=html;scrollTo(0,0);}
 function back(){$('form').style.display='block';$('out').innerHTML='';}
@@ -69,9 +100,13 @@ async function findBest(){
  $('err').textContent='';let b;try{b=birth();}catch{$('err').textContent='Enter your birthday first 🎂';return;}
  const g=$('gpref').value;
  $('out').innerHTML='<div class="sub">Reading 1,300+ charts…</div>';$('form').style.display='none';
- try{ const r=await api(`/api/best-idols?y=${b.y}&m=${b.m}&d=${b.d}`+(g?`&gender=${g}`:''));
-  const cards=r.best.map(i=>`<div class="idol" onclick="openCompat(${i.id})"><div class="sc">${i.score}%</div><div style="flex:1"><div class="nm">${i.emoji} ${esc(i.stage)}</div><div class="gr">${esc(i.group||'soloist')}</div><div class="ty">${esc(i.type)}</div></div></div>`).join('');
+ try{ const r=await api(`/api/best-idols?${bq(b)}`+(g?`&gender=${g}`:''));
+  const cards=r.best.map(i=>`<div class="idol" onclick="openCompat(${i.id})">
+     <div class="ava sm" id="ava${i.id}"><span>${esc((i.stage||'?')[0])}</span></div>
+     <div style="flex:1"><div class="nm">${esc(i.stage)}</div><div class="gr">${esc(i.group||'soloist')}</div><div class="ty">${i.emoji} ${esc(i.type)}</div></div>
+     <div class="sc">${i.score}%</div></div>`).join('');
   show(`<div class="han">作 緣</div><h1 style="font-size:22px">Your Top Idol Matches 💜</h1><div class="sub">tap one for the full reading</div>${cards}<button class="btn ghost" onclick="back()">↺ start over</button>`);
+  r.best.forEach(i=>loadPhoto('ava'+i.id, i.stage, i.group));
  }catch(e){back();$('err').textContent=(e.error||'error');}
 }
 let tmr;
@@ -84,18 +119,46 @@ function pickIdol(id){$('drop').style.display='none';openCompat(id);}
 async function openCompat(id){
  $('err').textContent='';let b;try{b=birth();}catch{$('err').textContent='Enter your birthday first 🎂';return;}
  $('form').style.display='none';$('out').innerHTML='<div class="sub">Reading your chemistry…</div>';
- try{ const r=await api(`/api/compat?y=${b.y}&m=${b.m}&d=${b.d}&idol=${id}`);
+ try{ const r=await api(`/api/compat?${bq(b)}&idol=${id}`);
   const R=r.result, I=r.idol;
+  const link=R.isMinor?'💛':'♡';
+  const dims=R.dimensions.map(d=>`<div class="dim"><div class="dlab"><span style="color:#e9e7ff">${d.emoji} ${esc(d.label)}</span><span>${d.score}%</span></div><div class="dbar"><i style="width:${d.score}%"></i></div><div class="dnote">${esc(d.note)}</div></div>`).join('');
   show(`<div class="result"><div class="han">宮 合</div>
-   <h1 style="font-size:21px">You × ${esc(I.stage)}</h1>
-   <div class="sub">${esc(I.group||'soloist')} · born ${esc(I.dob)}</div>
+   <div class="pair">
+    <div><div class="ava" id="meAva" style="--c:${col(R.you.element)}"><span>🙂</span></div><div class="pname">You<br/>${esc(R.you.element)}·${esc(R.you.animal)}</div></div>
+    <div class="heart">${link}</div>
+    <div><div class="ava" id="idolAva" style="--c:${col(R.them.element)}"><span>${esc((I.stage||'?')[0])}</span></div><div class="pname">${esc(I.stage)}<br/>${esc(R.them.element)}·${esc(R.them.animal)}</div></div>
+   </div>
    <div class="ring">${R.score}%</div><p class="ty2">${R.emoji} ${esc(R.type)}</p>
+   <div class="sub">${esc(I.group||'soloist')} · born ${esc(I.dob)}</div>
+   ${dims}
    <div class="rbody">${esc(R.body)}</div>
+   <div class="pc pull">💚 <b>What pulls you together:</b> ${esc(R.pull)}</div>
+   <div class="pc caut">⚠️ <b>What to watch:</b> ${esc(R.caution)}</div>
    ${R.factors.map(f=>`<div class="fact">✦ ${esc(f)}</div>`).join('')}
    <a class="cta" href="/app.html">✨ Now get YOUR Korean name & full Saju →</a>
    <button class="btn ghost" onclick="back()" style="margin-top:10px">↺ try another idol</button>
-   <div class="small">For fun ✦ public birthdates ✦ not a real relationship prediction</div></div>`);
+   <div class="small">For fun ✦ public birthdates ✦ not a real relationship prediction. Idol photo via Wikipedia.</div></div>`);
+  loadPhoto('idolAva', I.stage, I.group);
  }catch(e){back();$('err').textContent=(e.error||'error');}
+}
+const ELEMCOL={Wood:'#6abf69',Fire:'#ff6b6b',Earth:'#d9a441',Metal:'#cfd8e3',Water:'#5aa9e6'};
+function col(e){return ELEMCOL[e]||'#7a5cc0';}
+const _photoCache={};
+async function wikiPhoto(name,group){
+ const key=name+'|'+(group||'');
+ if(key in _photoCache) return _photoCache[key];
+ const tryUrl=async(search)=>{
+  try{const u=`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&gsrsearch=${encodeURIComponent(search)}&prop=pageimages&piprop=thumbnail&pithumbsize=400`;
+   const r=await fetch(u);const j=await r.json();const p=j.query&&j.query.pages?Object.values(j.query.pages)[0]:null;
+   return p&&p.thumbnail?p.thumbnail.source:null;}catch{return null;}};
+ let url=await tryUrl(`${name} ${group||''} singer kpop`.trim());
+ if(!url&&group) url=await tryUrl(`${name} ${group}`);
+ _photoCache[key]=url; return url;
+}
+async function loadPhoto(id,name,group){
+ try{const el=$(id); if(!el)return; const url=await wikiPhoto(name,group);
+  const el2=$(id); if(url&&el2){el2.style.backgroundImage=`url("${url}")`;el2.innerHTML='';}}catch{}
 }
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 </script></body></html>
