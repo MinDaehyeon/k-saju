@@ -114,7 +114,8 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
       const idol=IDOLS.find(i=>String(i.id)===String(q.idol)); if(!idol||!idol.chart) return json({error:"idol not found"},404);
       const userHasTime=!(q.h===""||q.h==null);
       const r=computeCompat(c,idol.chart,{idolStage:idol.stage,idolAge:2026-idol.year,userHasTime});
-      return json({result:r, idol:{id:idol.id,stage:idol.stage,group:idol.group,dob:idol.dob}});
+      return json({result:r, idol:{id:idol.id,stage:idol.stage,group:idol.group,dob:idol.dob,
+        real:idol.full||"", korean:idol.korean||""}});
     }
 
     // 체크아웃 (코어 신규 or 애드온 해금)
