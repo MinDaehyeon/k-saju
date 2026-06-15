@@ -95,7 +95,12 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
     // ── K-pop 아이돌 궁합 (무료 — 바이럴 입구) ──
     if(path==="/api/idols"){ // 검색(자동완성)
       const q=(url.searchParams.get("q")||"").trim().toLowerCase();
+      const rank=(i:any)=>{ const s=(i.stage||"").toLowerCase(), g=(i.group||"").toLowerCase();
+        if(s===q) return 0; if(s.startsWith(q)) return 1; if(s.includes(q)) return 2;
+        if(g.startsWith(q)) return 3; if(g.includes(q)) return 4; return 5; };
       const res=!q?[]:IDOLS.filter(i=>i.stage.toLowerCase().includes(q)||(i.group||"").toLowerCase().includes(q))
+        // 같은 순위면 최신 데이터(현재 활동 그룹) 우선 = id 큰 순
+        .sort((a,b)=> rank(a)-rank(b) || (Number(b.id)-Number(a.id)))
         .slice(0,30).map(i=>({id:i.id,stage:i.stage,group:i.group,dob:i.dob}));
       return json({idols:res});
     }

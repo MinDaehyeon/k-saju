@@ -11,6 +11,7 @@ cloudflared.exe
 serve.ts
 scrape_idols.ts
 build_idol_charts.ts
+merge_idols.ts
 *.test.ts
 # 내부 모드·런치 문서 (공개 repo 제외 — 로컬에만)
 MANUAL.md
