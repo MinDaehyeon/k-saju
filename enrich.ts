@@ -3,7 +3,7 @@
 //  결과는 DB module_cache에 저장 → 재열람 시 동일(일관성). 키 없으면 null(템플릿 폴백).
 // ============================================================
 import type { SajuChart } from "./saju.ts";
-import { STEMS, BRANCHES, ELEM_EN, ANIMALS } from "./saju.ts";
+import { STEMS, BRANCHES, ELEM_EN, ANIMALS, STEM_ELEM, STEM_YANG } from "./saju.ts";
 
 const KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = process.env.KSAJU_LLM_MODEL || "claude-sonnet-4-6";
@@ -15,22 +15,23 @@ const SYSTEM = `You are a master Korean Saju (사주명리) reader writing a PRE
 HARD RULES:
 - You are GIVEN the exact computed chart facts + base interpretations. NARRATE them richly. NEVER invent or contradict a fact (pillars, day master element, strength, ten-gods, missing elements, 2026 relation).
 - Keep each section's intent. Rewrite each BODY to 4–7 vivid, warm, concrete second-person sentences. Mystical yet grounded; specific, never generic horoscope filler.
-- Refer to the client by their chosen Korean name when natural.
+- Address the client warmly in the second person ("you", "your"). Do NOT print their Korean name in Hangul.
+- Write ONLY in natural, fluent English. NEVER output Korean (Hangul) or Chinese (hanja) characters, and do NOT drop in romanized jargon or technical term codes in parentheses (no "(비겁)", no "丙午", no "Gyeong-o"). The client cannot read Korean — translate every concept into plain English.
 - Output STRICT JSON ONLY (no prose around it), using the SAME keys you were given:
   {"sections":{"<key>":{"body":"..."}, ...}}`;
 
 // 차트 -> 모델이 어길 수 없는 '사실' 텍스트
 export function factsText(c: SajuChart): string {
-  const p = (x:any)=> x? `${STEMS[x.stem]}${BRANCHES[x.branch]} (${x.gzKR})`:"-";
+  // 영어로만 — LLM이 한글/한자를 따라쓰지 못하게 raw 간지·gzKR·한자는 넣지 않는다.
+  const pil = (x:any)=> x? `${STEM_YANG[x.stem]?"Yang":"Yin"} ${ELEM_EN[STEM_ELEM[x.stem]]} over the ${ANIMALS[x.branch]}`:"unknown";
   return [
-    `Four Pillars: Year ${p(c.year)} / Month ${p(c.month)} / Day ${p(c.day)} / Hour ${c.hour?p(c.hour):"unknown"}`,
-    `Day Master: ${STEMS[c.dayMaster]} = ${ELEM_EN[c.dayMasterElem]}`,
-    `Strength: ${c.strength.verdict} (score ${c.strength.score})`,
-    `Five Elements count [Wood,Fire,Earth,Metal,Water]: ${c.elements.count.join(",")}; missing: ${c.elements.missing.map(i=>ELEM_EN[i]).join(",")||"none"}; strongest: ${ELEM_EN[c.elements.strongest]}`,
-    `Ten Gods: year=${c.tenGods.year}, month=${c.tenGods.month}, hour=${c.tenGods.hour}`,
-    `Zodiac (year branch): ${ANIMALS[c.zodiac]}`,
-    `2026 is 丙午 (Fire Horse).`,
-    c.daeun? `Luck cycle (Dae-un) ${c.daeun.direction}, starts age ${c.daeun.startAge}; first cycles: ${c.daeun.list.slice(0,4).map(d=>d.gzKR+"@"+d.age).join(", ")}`:"",
+    `Four Pillars (energy over zodiac animal): Year = ${pil(c.year)}; Month = ${pil(c.month)}; Day = ${pil(c.day)}; Hour = ${c.hour?pil(c.hour):"unknown"}`,
+    `Day Master (core self): ${ELEM_EN[c.dayMasterElem]}`,
+    `Overall strength: ${c.strength.verdict}`,
+    `Five-element balance [Wood, Fire, Earth, Metal, Water] = ${c.elements.count.join(", ")}; missing: ${c.elements.missing.map(i=>ELEM_EN[i]).join(", ")||"none"}; strongest: ${ELEM_EN[c.elements.strongest]}`,
+    `Birth zodiac animal: ${ANIMALS[c.zodiac]}`,
+    `The year 2026 is the Fire Horse year.`,
+    c.daeun? `Major luck cycles move ${c.daeun.direction === "forward" ? "forward" : "in reverse"}, beginning around age ${c.daeun.startAge}.`:"",
   ].filter(Boolean).join("\n");
 }
 
@@ -51,7 +52,7 @@ function parseSections(txt:string):Record<string,string>|null{
 async function callAnthropic(user:string):Promise<Record<string,string>|null>{
   const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
     headers:{"x-api-key":KEY!,"anthropic-version":"2023-06-01","content-type":"application/json"},
-    body:JSON.stringify({model:MODEL,max_tokens:2200,temperature:0.7,
+    body:JSON.stringify({model:MODEL,max_tokens:4096,temperature:0.7,
       system:[{type:"text",text:SYSTEM,cache_control:{type:"ephemeral"}}],
       messages:[{role:"user",content:user}]})});
   if(!res.ok){ console.error("[enrich:anthropic]",res.status,(await res.text()).slice(0,160)); return null; }
@@ -60,7 +61,7 @@ async function callAnthropic(user:string):Promise<Record<string,string>|null>{
 async function callGemini(user:string):Promise<Record<string,string>|null>{
   const body=JSON.stringify({system_instruction:{parts:[{text:SYSTEM}]},
     contents:[{role:"user",parts:[{text:user}]}],
-    generationConfig:{temperature:0.7,maxOutputTokens:2400,responseMimeType:"application/json"}});
+    generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:"application/json"}});
   for(const model of GMODELS){ // 모델 순회
     for(let attempt=0;attempt<2;attempt++){ // 5xx/429 재시도(지연 한도)
       const url=`https://generativelanguage.googleapis.com/v1beta/models/${model.trim()}:generateContent?key=${GKEY}`;

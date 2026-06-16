@@ -11,7 +11,7 @@ function group(dm:number, other:number):number{
   const de=STEM_ELEM[dm], oe=STEM_ELEM[other];
   if(de===oe)return 0; if(GEN(de,oe))return 1; if(CTRL(de,oe))return 2; if(CTRL(oe,de))return 3; return 4;
 }
-const GROUP_EN=["Self/Peers (비겁)","Output/Creativity (식상)","Wealth (재성)","Authority/Officer (관성)","Resource/Support (인성)"];
+const GROUP_EN=["Self & Peers","Creativity & Expression","Wealth & Resourcefulness","Drive & Discipline","Support & Learning"];
 const REMEDY=[ // per element 木火土金水
   {color:"Emerald green",dir:"East",num:"3 & 8"},
   {color:"Crimson red",dir:"South",num:"2 & 7"},
@@ -114,7 +114,7 @@ export function buildReading(c:SajuChart, opts:{name?:string; koreanName?:string
   const yearStem2026=2; // 丙
   const g26=group(dm,yearStem2026);
   const year2026:Section={
-    title:"Your 2026 (Year of the Fire Horse 丙午)",
+    title:"Your 2026 — Year of the Fire Horse",
     verdict:["A year of self & rivals","A year of output & visibility","A year of money & opportunity","A year of duty & pressure","A year of support & learning"][g26],
     body:`2026 is the <b>Fire Horse</b> year, and to your ${ELEM_EN[dmE]} day master it activates <b>${GROUP_EN[g26]}</b>. `+
       [`This is a year to <b>back yourself</b> — independence, new ventures, and reclaiming your own lane. Allies matter; rivals appear.`,

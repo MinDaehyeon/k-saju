@@ -29,6 +29,11 @@ class BadInput extends Error{}
 const json=(o:any,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{"content-type":"application/json"}});
 // LLM/저장 출력에서 <b> 외 모든 태그 제거 (저장 XSS/prompt-injection 방어)
 const sanitize=(s:string)=>String(s).replace(/<(?!\/?b\s*>)[^>]*>/gi,"");
+// 영어권 노출용: LLM 결과에 혹시 남은 한글/한자 제거 + 빈 괄호·중복공백 정리
+const enClean=(s:string)=>String(s)
+  .replace(/[㐀-鿿가-힣㄰-㆏]/g,"")   // CJK ideographs + Hangul
+  .replace(/\(\s*[·,/\s]*\)/g,"")                               // 빈/구두점만 남은 괄호
+  .replace(/\s{2,}/g," ").replace(/\s+([.,;!?])/g,"$1").trim();
 function intIn(v:any,lo:number,hi:number,n:string){const x=Number(v);if(!Number.isInteger(x)||x<lo||x>hi)throw new BadInput(`bad ${n}`);return x;}
 const dim=(y:number,m:number)=>new Date(y,m,0).getDate();
 function validate(o:any){
@@ -57,15 +62,17 @@ function teaserPayload(b:any,name:string){
 
 // 모듈 콘텐츠 빌드 + 풍부화 + 캐시 (재열람 동일 보장)
 async function moduleContent(id:string, mod:string){
-  const cached=db.getModuleCache(id,mod); if(cached) return cached;
+  const cached=db.getModuleCache(id,mod); if(cached&&cached.enriched) return cached; // 풍부화 완료분만 확정 캐시
   const row=db.getReading(id)!; const birth=JSON.parse(row.birth_json);
   const c=computeSaju(birth);
   const base=buildReading(c,{name:birth.name,koreanName:row.korean_name||undefined,gender:birth.gender});
   const content:any=buildModule(mod,c,base,{gender:birth.gender});
   const map=Object.fromEntries(content.sections.map((s:any,i:number)=>["s"+i,s]));
   const enr=await enrichReading(factsText(c),map,{name:birth.name,koreanName:row.korean_name||undefined});
-  if(enr){ content.sections=content.sections.map((s:any,i:number)=>({...s,body:sanitize(enr["s"+i]||s.body)})); content.enriched=true; }
-  db.setModuleCache(id,mod,content); return content;
+  if(enr){ content.sections=content.sections.map((s:any,i:number)=>({...s,body:enClean(sanitize(enr["s"+i]||s.body))})); content.enriched=true;
+    db.setModuleCache(id,mod,content); return content; }
+  if(cached) return cached;             // 풍부화 실패 → 이전 템플릿 유지(다음 열람에 재시도)
+  db.setModuleCache(id,mod,content); return content; // 첫 실패 → 템플릿 캐시(enriched=false라 재시도 대상)
 }
 // C: 비동기 프리워밍 — 결제/이름선택 직후 백그라운드로 풍부화 미리 굽기(첫 열람 즉시화)
 const inFlight=new Set<string>();
@@ -151,8 +158,11 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
         const mod=parts[5]; const m=META(mod); if(!m) return json({error:"bad module"},400);
         if(!db.hasModule(id,mod)) return json({locked:true,meta:m},402);
         const cached=db.getModuleCache(id,mod);
-        if(cached) return json({module:mod, content:cached});
-        if(m.needsPhoto) return json({needsPhoto:true, meta:m});   // 손금: 사진 필요
+        if(m.needsPhoto){ // 손금: 캐시 있으면 그대로, 없으면 사진 업로드 필요
+          if(cached) return json({module:mod, content:cached});
+          return json({needsPhoto:true, meta:m}); }
+        if(cached && cached.enriched) return json({module:mod, content:cached}); // 풍부화 완료분만 확정
+        if(cached){ prewarm(id,mod); return json({module:mod, content:cached}); } // 템플릿만 → 보여주고 백그라운드 재풍부화
         prewarm(id,mod); return json({pending:true, meta:m}, 202);  // 비동기 준비중
       }
       // 손금/관상 업로드 (B: Gemini Vision)
