@@ -24,7 +24,8 @@
  .pillars{display:flex;gap:8px;margin:18px 0}
  .gz{flex:1;background:var(--bone);border:1px solid var(--vellum);border-radius:8px;padding:11px 4px;text-align:center}
  .gz .k{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:20px}
- .gz .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--graphite);margin-top:4px;font-family:Archivo}
+ .gz .g{font-size:10px;color:var(--graphite);margin-top:3px;line-height:1.2}
+ .gz .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--vellum);margin-top:5px;font-family:Archivo}
  .sec{margin:16px 0;padding-bottom:14px;border-bottom:1px solid var(--vellum)}
  .sec .h{font-family:Archivo,sans-serif;font-weight:900;font-size:17px}
  .sec .h .ko{font-family:"Nanum Myeongjo",serif;color:var(--seal);font-size:14px;margin-right:6px}
@@ -69,6 +70,9 @@
 const ID=location.pathname.split('/')[2];
 let D=null, APPSHARE=null;
 const ELEM_ORDER=['Wood','Fire','Earth','Metal','Water'];
+const STEM_EL={'갑':'Wood','을':'Wood','병':'Fire','정':'Fire','무':'Earth','기':'Earth','경':'Metal','신':'Metal','임':'Water','계':'Water'};
+const BR_AN={'자':'Rat','축':'Ox','인':'Tiger','묘':'Rabbit','진':'Dragon','사':'Snake','오':'Horse','미':'Goat','신':'Monkey','유':'Rooster','술':'Dog','해':'Pig'};
+function pillarGloss(kr){ if(!kr||kr.length<2)return''; const el=STEM_EL[kr[0]]||'',an=BR_AN[kr[1]]||''; return (el&&an)?el+' · '+an:''; }
 function chartArt(D,size){ try{ const P=D.pillars||{}; const counts=D.elements&&D.elements.count;
   const dmElem=Math.max(0,ELEM_ORDER.indexOf(D.dayMaster.en));
   const seed=window.sajuArtSeed([ID,D.koreanName||D.name||'',P.year,P.month,P.day,P.hour,D.dayMaster.en,counts?counts.join(','):'']);
@@ -78,7 +82,7 @@ const KOCH={overview:'개요',personality:'성격',wealth:'재물운',love:'연�
 async function api(p,opt){const r=await fetch(p,opt);if(!r.ok)throw await r.json().catch(()=>({error:r.status}));return r.json();}
 function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){alert('🔊 '+t);}}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function gz(k,l){return '<div class="gz"><div class="k">'+esc(k||'—')+'</div><div class="l">'+l+'</div></div>';}
+function gz(k,l){return '<div class="gz"><div class="k">'+esc(k||'—')+'</div><div class="g">'+esc(pillarGloss(k))+'</div><div class="l">'+l+'</div></div>';}
 function secHTML(s,key){const ko=KOCH[key]||'';return '<div class="sec"><div class="h">'+(ko?'<span class="ko">'+ko+'</span>':'')+esc(s.title)+'</div>'+(s.verdict?'<div class="v">“'+esc(s.verdict)+'”</div>':'')+'<p>'+s.body+'</p></div>';}
 function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200);}
 

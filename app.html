@@ -60,7 +60,8 @@
  .pillars{display:flex;gap:8px;margin:18px 0}
  .gz{flex:1;background:var(--bone);border:1px solid var(--vellum);border-radius:8px;padding:11px 4px;text-align:center}
  .gz .k{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:20px}
- .gz .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--graphite);margin-top:4px;font-family:Archivo}
+ .gz .g{font-size:10px;color:var(--graphite);margin-top:3px;line-height:1.2}
+ .gz .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--vellum);margin-top:5px;font-family:Archivo}
  .elembar{display:flex;gap:8px;align-items:flex-end;height:64px;margin:8px 2px 4px}
  .elembar .e{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
  .elembar .bar{width:100%;background:var(--c);border-radius:2px 2px 0 0;transition:height .9s var(--ease);min-height:3px}
@@ -158,6 +159,9 @@
 let DATA=null, CHOSEN=null;
 const $=(id)=>document.getElementById(id);
 const ELEM_ORDER=['Wood','Fire','Earth','Metal','Water'];
+const STEM_EL={'갑':'Wood','을':'Wood','병':'Fire','정':'Fire','무':'Earth','기':'Earth','경':'Metal','신':'Metal','임':'Water','계':'Water'};
+const BR_AN={'자':'Rat','축':'Ox','인':'Tiger','묘':'Rabbit','진':'Dragon','사':'Snake','오':'Horse','미':'Goat','신':'Monkey','유':'Rooster','술':'Dog','해':'Pig'};
+function pillarGloss(kr){ if(!kr||kr.length<2)return''; const el=STEM_EL[kr[0]]||'',an=BR_AN[kr[1]]||''; return (el&&an)?el+' · '+an:''; }
 function chartArt(D,size){ try{ const P=D.pillars||{}; const counts=D.elements&&D.elements.count;
   const dmElem=Math.max(0,ELEM_ORDER.indexOf(D.dayMaster.en));
   const seed=window.sajuArtSeed([D._name||'',P.year,P.month,P.day,P.hour,D.dayMaster.en,counts?counts.join(','):'']);
@@ -195,7 +199,7 @@ function renderTeaser(){
  const D=DATA, c=col(D.dayMaster.en), P=D.pillars;
  const maxE=Math.max(1,...(D.elements.count||[1]));
  const elembar=D.elements.count?`<div class="elembar">${D.elements.count.map((n,i)=>`<div class="e" style="--c:${col(ELEM5[i][0])}"><div class="bar" data-h="${Math.round(8+n/maxE*92)}%"></div><div class="el">${ELEM5[i][1]}<br>${ELEM5[i][0]}</div></div>`).join('')}</div><div class="small" style="margin-top:0">Your element balance · 오행 (Five Elements)</div>`:'';
- const gz=(k,kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="l">${en}</div></div>`;
+ const gz=(k,kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="g">${esc(pillarGloss(kr))}</div><div class="l">${en}</div></div>`;
  const O=D.reading.overview;
  const chapters=D.chapters.map((ch,i)=>`<div class="chapter reveal"><div class="cnum">0${i+2}</div><div class="cmain">
     <div class="ctitle"><span class="ko">${KOCH[ch.key]||''}</span>${esc(KOEN[ch.key]||ch.title)}</div>
@@ -248,7 +252,7 @@ function pick(i){CHOSEN=i;DATA.names.forEach((_,k)=>$('nm'+k).classList.toggle('
 function toReading(){
  if(CHOSEN===null)return; const n=DATA.names[CHOSEN], R=DATA.reading, P=DATA.pillars;
  APPSHARE={kr:n.kr,ro:n.ro,hanja:n.hanja,meaning:n.meaning};
- const gz=(kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="l">${en}</div></div>`;
+ const gz=(kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="g">${esc(pillarGloss(kr))}</div><div class="l">${en}</div></div>`;
  const order=['overview','personality','wealth','love','career','year2026','luck'];
  const secs=order.map(k=>{const s=R[k];const ko=k==='overview'?'개요':(KOCH[k]||'');return `<div class="sec reveal"><div class="h"><span class="ko">${ko}</span>${esc(s.title)}</div><div class="v">“${esc(s.verdict)}”</div><p>${s.body}</p></div>`;}).join('');
  $('s_reading').innerHTML=`<div class="crest reveal"><div class="dm" style="font-family:'Nanum Myeongjo',serif;font-size:34px">${esc(n.kr)}</div>
