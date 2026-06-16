@@ -106,6 +106,22 @@
  .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
  .reveal.in{opacity:1;transform:none}
  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.bar,.elembar .bar{transition:none}}
+ .btn.share{background:var(--seal);color:#fff;margin-top:16px}.btn.share:hover{box-shadow:0 10px 26px rgba(192,57,43,.32)}
+ .share-cap{text-align:center;font-size:11px;color:var(--graphite);margin:2px 0 4px}
+ .share-tools{display:flex;justify-content:center;align-items:center;gap:10px;margin:6px 0 4px;flex-wrap:wrap}
+ .share-tools button{width:44px;height:44px;border-radius:50%;border:1px solid var(--vellum);background:var(--bone2);
+  color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  font-family:Archivo,sans-serif;font-weight:900;font-size:13px;transition:transform .16s var(--ease),background .16s,border-color .16s}
+ .share-tools button:hover{transform:translateY(-2px);background:var(--bone);border-color:var(--ink)}
+ .share-tools button.copied{background:var(--ink);color:var(--paper)}
+ .adslot{margin:16px 0;border:1px dashed var(--vellum);border-radius:9px;padding:12px;background:var(--bone2)}
+ .adlabel{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--vellum);text-align:center;margin-bottom:7px;font-family:Archivo,sans-serif}
+ .adhouse{display:block;text-align:center;text-decoration:none;color:var(--ink);font-family:Archivo,sans-serif;font-weight:700;font-size:14px}
+ .adhouse span{color:var(--seal)}
+ #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:20;
+  background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;padding:11px 18px;border-radius:30px;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease)}
+ #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
  footer{padding:0 20px 48px}
 </style></head><body>
 <div id="spot"></div>
@@ -150,6 +166,7 @@ function decorate(){
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   document.querySelectorAll('.bar[data-h]').forEach(b=>{b.style.height=b.dataset.h;});
  }));
+ adInit();
 }
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');scrollTo({top:0,behavior:'smooth'});decorate();}
 if(window.matchMedia('(pointer:fine)').matches){const sp=$('spot');document.addEventListener('mousemove',e=>{sp.style.setProperty('--mx',e.clientX+'px');sp.style.setProperty('--my',e.clientY+'px');sp.style.opacity='1';});}
@@ -197,6 +214,7 @@ function renderTeaser(){
    <button class="btn" onclick="pay()">Unlock my full reading →</button>
    <div class="trust">No subscription · secure checkout · instant access</div>
   </div>
+  ${adSlot('<a class="adhouse" href="/">💜 Or find <span>your K-pop idol soulmate</span> — free →</a>')}
   <button class="btn alt reveal" onclick="show('s_form')">← Back</button>
   <div class="small reveal">For entertainment & self-reflection · K-SAJU</div>`;
  show('s_teaser');
@@ -222,6 +240,7 @@ function renderNames(){
 function pick(i){CHOSEN=i;DATA.names.forEach((_,k)=>$('nm'+k).classList.toggle('sel',k===i));const b=$('n_go');b.disabled=false;b.textContent='Continue as '+DATA.names[i].kr+' →';}
 function toReading(){
  if(CHOSEN===null)return; const n=DATA.names[CHOSEN], R=DATA.reading, P=DATA.pillars;
+ APPSHARE={kr:n.kr,ro:n.ro,hanja:n.hanja,meaning:n.meaning};
  const gz=(kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="l">${en}</div></div>`;
  const order=['overview','personality','wealth','love','career','year2026','luck'];
  const secs=order.map(k=>{const s=R[k];const ko=k==='overview'?'개요':(KOCH[k]||'');return `<div class="sec reveal"><div class="h"><span class="ko">${ko}</span>${esc(s.title)}</div><div class="v">“${esc(s.verdict)}”</div><p>${s.body}</p></div>`;}).join('');
@@ -229,9 +248,79 @@ function toReading(){
    <div class="zo">${esc(n.ro)} · ${esc(n.hanja)} · ${esc(n.meaning)}</div></div>
   <div class="pillars reveal">${gz(P.yearKR,'Year')}${gz(P.monthKR,'Month')}${gz(P.dayKR,'Day')}${gz(P.hourKR,'Hour')}</div>
   ${secs}
-  <button class="btn alt reveal" onclick="location.href='/app.html'">↺ New reading</button>
+  <button class="btn share reveal" onclick="shareResult()">📸 Share my Korean name</button>
+  <div class="share-cap reveal">or send the link →</div>
+  ${shareButtonsHtml()}
+  <button class="btn alt reveal" onclick="location.href='/app.html'" style="margin-top:16px">↺ New reading</button>
   <div class="small reveal">사주팔자 computed from your exact birth time · deterministic · K-SAJU</div>`;
  show('s_reading');
+}
+// ── toast ──
+function toast(msg){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200);}
+// ── share (full reading → Korean name card) ──
+let APPSHARE=null;
+function shareUrl(){return location.origin+'/app.html';}
+function shareTextApp(){return APPSHARE?`My Korean name is ${APPSHARE.kr} (${APPSHARE.ro}) ✦ Get your own Korean Saju (사주) name & reading:`:'';}
+function platformShare(kind){
+ const url=shareUrl(),text=shareTextApp(); const eU=encodeURIComponent(url),eT=encodeURIComponent(text);
+ if(kind==='copy'){ navigator.clipboard.writeText(text+' '+url).then(()=>{toast('Copied! Paste it anywhere ✦');const b=document.querySelector('.share-copy');if(b){b.classList.add('copied');setTimeout(()=>b.classList.remove('copied'),900);}}).catch(()=>prompt('Copy:',text+' '+url)); return; }
+ const map={ x:`https://twitter.com/intent/tweet?text=${eT}&url=${eU}`,
+   whatsapp:`https://wa.me/?text=${encodeURIComponent(text+' '+url)}`,
+   reddit:`https://www.reddit.com/submit?url=${eU}&title=${eT}`,
+   telegram:`https://t.me/share/url?url=${eU}&text=${eT}` };
+ window.open(map[kind],'_blank','noopener,noreferrer');
+}
+function shareButtonsHtml(){return `<div class="share-tools reveal" aria-label="Share">
+  <button onclick="platformShare('x')" aria-label="X">X</button>
+  <button onclick="platformShare('whatsapp')" aria-label="WhatsApp">WA</button>
+  <button onclick="platformShare('reddit')" aria-label="Reddit">R</button>
+  <button onclick="platformShare('telegram')" aria-label="Telegram">TG</button>
+  <button class="share-copy" onclick="platformShare('copy')" aria-label="Copy link">🔗</button>
+ </div>`;}
+async function waitForCardFonts(){ if(!document.fonts)return;
+ await Promise.race([Promise.all([document.fonts.load('900 72px Archivo'),document.fonts.load('800 120px "Nanum Myeongjo"'),document.fonts.ready]),new Promise(r=>setTimeout(r,1800))]); }
+function canvasToBlob(c){return new Promise((res,rej)=>{try{c.toBlob(b=>b?res(b):rej(new Error('export')),'image/png',0.95);}catch(e){rej(e);}});}
+async function renderNameCard(){
+ await waitForCardFonts();
+ const W=1080,H=1920,N=APPSHARE,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#cbc6b8';ctx.fillRect(0,0,W,H);
+ ctx.globalAlpha=.14;ctx.fillStyle='#17140f';for(let i=0;i<800;i++){ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2.2,Math.random()*2.2);}ctx.globalAlpha=1;
+ ['#2f6b54','#c0392b','#bf9430','#7c776b','#222a36'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(i*(W/5),0,W/5,34);});
+ ctx.textAlign='center';ctx.textBaseline='alphabetic';
+ ctx.fillStyle='#17140f';ctx.font='900 56px Archivo,sans-serif';ctx.fillText('K-SAJU',W/2,150);
+ ctx.fillStyle='#c0392b';ctx.font='800 38px "Nanum Myeongjo",serif';ctx.fillText('사주 · my Korean name',W/2,210);
+ // big Korean name
+ ctx.fillStyle='#17140f';ctx.font='800 300px "Nanum Myeongjo",serif';ctx.fillText(N.kr,W/2,820);
+ ctx.fillStyle='#c0392b';ctx.font='900 60px Archivo,sans-serif';ctx.fillText(N.ro,W/2,930);
+ ctx.fillStyle='#5c574d';ctx.font='500 42px Inter,sans-serif';ctx.fillText(`${N.hanja} · ${N.meaning}`,W/2,1000);
+ ctx.strokeStyle='#7c776b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(220,1140);ctx.lineTo(860,1140);ctx.stroke();
+ ctx.fillStyle='#2a2620';ctx.font='500 40px Inter,sans-serif';ctx.fillText('Chosen for my Saju (사주) — Four Pillars.',W/2,1230);
+ ctx.fillStyle='#17140f';ctx.font='900 42px Archivo,sans-serif';ctx.fillText('Get your Korean name',W/2,1700);
+ ctx.fillStyle='#c0392b';ctx.font='900 40px Archivo,sans-serif';ctx.fillText('k-saju-wxe6.onrender.com',W/2,1770);
+ return canvas;
+}
+async function shareResult(){
+ if(!APPSHARE)return; let blob=null;
+ try{ blob=await canvasToBlob(await renderNameCard()); }catch{ blob=null; }
+ if(blob){ const file=new File([blob],`k-saju-name-${(APPSHARE.ro||'name').replace(/\W+/g,'')}.png`,{type:'image/png'});
+  try{ if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){ await navigator.share({title:'K-Saju',text:shareTextApp(),files:[file]}); return; } }
+  catch(e){ if(e&&e.name==='AbortError')return; }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('Image saved — post it anywhere ✦');return;
+ }
+ const url=shareUrl(),text=shareTextApp();
+ try{ if(navigator.share){ await navigator.share({title:'K-Saju',text,url}); return; } }catch(e){ if(e&&e.name==='AbortError')return; }
+ platformShare('copy');
+}
+// ── ads (free users only; AdSense-ready, house cross-promo fallback) ──
+const ADSENSE_CLIENT=""; // paste "ca-pub-XXXXXXXXXXXX" after AdSense approval
+const ADSENSE_SLOT="";   // ad unit id
+function adSlot(houseHtml){
+ if(ADSENSE_CLIENT){ return `<div class="adslot"><div class="adlabel">Sponsored</div><ins class="adsbygoogle" style="display:block" data-ad-client="${ADSENSE_CLIENT}" data-ad-slot="${ADSENSE_SLOT}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`; }
+ return houseHtml?`<div class="adslot"><div class="adlabel">More from K-Saju</div>${houseHtml}</div>`:'';
+}
+function adInit(){ if(!ADSENSE_CLIENT)return;
+ if(!window.__adsLoaded){window.__adsLoaded=1;const s=document.createElement('script');s.async=true;s.src=`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;s.crossOrigin='anonymous';document.head.appendChild(s);}
+ try{document.querySelectorAll('ins.adsbygoogle:not([data-done])').forEach(el=>{el.setAttribute('data-done','1');(window.adsbygoogle=window.adsbygoogle||[]).push({});});}catch(e){}
 }
 // 결제 후 복귀(?token&d) => 이름 화면부터
 (async function(){

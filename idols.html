@@ -158,6 +158,7 @@ function decorate(){
   document.querySelectorAll('.track i[data-w]').forEach(i=>{i.style.width=i.dataset.w+'%';});
  }));
  const sn=$('scoreNum'); if(sn) countUp(sn, parseInt(sn.dataset.t||'0',10));
+ adInit();
 }
 function show(html){$('form').style.display='none';$('out').innerHTML=html;scrollTo({top:0,behavior:'smooth'});decorate();}
 function back(){$('form').style.display='block';$('out').innerHTML='';decorate();}
@@ -175,7 +176,7 @@ async function findBest(){
      <div class="ava" id="ava${i.id}"><span>${esc((i.stage||'?')[0])}</span></div>
      <div style="flex:1"><div class="nm">${esc(i.stage)}</div><div class="gr">${esc(i.group||'soloist')}</div><div class="ty">${esc(i.type)}</div></div>
      <div class="sc">${i.score}</div></div>`).join('');
-  show(`<h1 class="reveal" style="font-size:30px">Your top idol matches</h1><div class="small reveal" style="text-align:left;margin:8px 2px 14px">Tap one for the full reading.</div>${cards}<button class="btn alt reveal" onclick="back()">Start over</button>`);
+  show(`<h1 class="reveal" style="font-size:30px">Your top idol matches</h1><div class="small reveal" style="text-align:left;margin:8px 2px 14px">Tap one for the full reading.</div>${cards}${adSlot('<a class="adhouse" href="/app.html">✨ Get <span>your own Korean name</span> + full Saju →</a>')}<button class="btn alt reveal" onclick="back()">Start over</button>`);
   r.best.forEach(i=>loadPhoto('ava'+i.id, i.stage, i.group));
  }catch(e){back();$('err').textContent=(e.error||'error');}
 }
@@ -213,6 +214,7 @@ async function openCompat(id){
    <div class="pc reveal" style="--c:var(--fire)"><b>What to watch:</b> ${esc(R.caution)}</div>
    <a class="btn seal reveal" style="display:block;text-decoration:none;text-align:center" href="/app.html">Get your own Korean name + full Saju →</a>
    <button class="btn alt reveal" onclick="back()">Try another idol</button>
+   ${adSlot('')}
    <div class="small reveal">For fun only · public birthdates · not a real relationship prediction · photo via Wikipedia</div>`);
   loadPhoto('idolAva', I.stage, I.group);
  }catch(e){back();$('err').textContent=(e.error||'error');}
@@ -307,6 +309,17 @@ async function shareResult(){
  const url=shareUrl(),text=shareText();
  try{ if(navigator.share){ await navigator.share({title:'K-Saju × K-Pop',text,url}); return; } }catch(e){ if(e&&e.name==='AbortError')return; }
  platformShare('copy');
+}
+// ── ads (free users only; AdSense-ready, house cross-promo fallback) ──
+const ADSENSE_CLIENT=""; // paste "ca-pub-XXXXXXXXXXXX" after AdSense approval
+const ADSENSE_SLOT="";   // ad unit id
+function adSlot(houseHtml){
+ if(ADSENSE_CLIENT){ return `<div class="adslot"><div class="adlabel">Sponsored</div><ins class="adsbygoogle" style="display:block" data-ad-client="${ADSENSE_CLIENT}" data-ad-slot="${ADSENSE_SLOT}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`; }
+ return houseHtml?`<div class="adslot"><div class="adlabel">More from K-Saju</div>${houseHtml}</div>`:'';
+}
+function adInit(){ if(!ADSENSE_CLIENT)return;
+ if(!window.__adsLoaded){window.__adsLoaded=1;const s=document.createElement('script');s.async=true;s.src=`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;s.crossOrigin='anonymous';document.head.appendChild(s);}
+ try{document.querySelectorAll('ins.adsbygoogle:not([data-done])').forEach(el=>{el.setAttribute('data-done','1');(window.adsbygoogle=window.adsbygoogle||[]).push({});});}catch(e){}
 }
 decorate(); // initial hero
 </script></body></html>
