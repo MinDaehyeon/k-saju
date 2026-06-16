@@ -115,21 +115,43 @@ export function computeCompat(user:SajuChart, idol:IdolChart, opts:{idolStage?:s
   const name=opts.idolStage||"your bias";
   const headline = minor ? `${name} is your ${type} ${emoji}` : `You + ${name}: ${type} ${emoji} · ${overall}%`;
 
+  // 본문 보강용: 띠 관계 한 줄 + 최강/최약 차원 하이라이트 + 케미별 조언
+  const zl = inSamhap(uyb,iyb)
+      ? `your ${ANIMALS[uyb]} year-sign and their ${ANIMALS[iyb]} fall into a rare three-harmony trine (삼합), the old-soul kind of recognition`
+    : isYukhap(uyb,iyb)
+      ? `your ${ANIMALS[uyb]} and their ${ANIMALS[iyb]} form a Six-Harmony pair (육합), the classic "meant to meet" sign`
+    : uyb===iyb
+      ? `you share the ${ANIMALS[uyb]} year-sign, so you instinctively move to the same rhythm`
+    : isChung(uyb,iyb)
+      ? `your ${ANIMALS[uyb]} sits directly across from their ${ANIMALS[iyb]} (충) — a charged, opposites-attract spark`
+      : `your ${ANIMALS[uyb]} and their ${ANIMALS[iyb]} signs take a little time to tune into each other`;
+  const sortedDim=[...dimensions].sort((a,b)=>b.score-a.score);
+  const top=sortedDim[0], low=sortedDim[sortedDim.length-1];
+  const advice:{[k:string]:string}={
+    soulmate:`A bond this aligned is rare enough to handle with care — protect it.`,
+    cozy:`Lean into the ease; this is the kind of match that quietly grows stronger with time.`,
+    lift:`Keep cheering each other on — you're at your best when you're building something together.`,
+    twin:`Take turns leading and you'll feel unstoppable; both grab the wheel and you'll stall.`,
+    magnet:`The friction is the fun — just don't mistake the intensity for instability.`,
+    spicy:`Channel the heat into play instead of pressure and it stays electric for years.`,
+    slow:`Don't force the spark — let this one reveal itself chapter by chapter.`,
+    cheer:`A bond to cheer from the front row — pure hype, zero pressure.`,
+  };
   let body:string;
   if(minor){
-    body=`Your ${uElem} energy and ${name}'s ${iElem} create pure fan-cheer energy — you'd hype each other up endlessly. This reads as support, good vibes, and fan energy only. 💛`;
+    body=`In the Korean chart, ${zl}. Your ${uElem} energy meets ${name}'s ${iElem}, and the standout note is ${top.label.toLowerCase()} at ${top.score}% — ${top.note}. Read together, this is fan-cheer chemistry: support, hype, and good vibes only, nothing more. ${advice.cheer} 💛`;
   } else {
     const flavor:{[k:string]:string}={
       soulmate:`This is the rare one. Your ${uElem} Day Master and ${name}'s ${iElem} lock into a destined union — the kind of pull a Saju reader would circle on the chart.`,
-      cozy:`Your charts feel like stepping into a warm room. ${uElem} and ${iElem} just *fit* — easy, safe, a connection you don't have to fight for.`,
-      lift:`One of you naturally fuels the other. ${uElem} and ${iElem} help each other grow — you'd each become more *you* together.`,
-      twin:`Same element, same wavelength — two ${uElem} hearts. Intuitive and comfortable, though you'll both want to lead.`,
-      magnet:`A true push-pull dynamic. Your ${uElem} and ${iElem} energies challenge each other — frustrating, magnetic, never boring.`,
-      spicy:`Your zodiac signs clash head-on — and that's exactly the spark. High tension, high heat, unforgettable.`,
-      slow:`No fireworks on day one — yours is a slow burn. ${uElem} and ${iElem} open up to each other over time.`,
+      cozy:`Your two charts feel like stepping into a warm room. ${uElem} and ${iElem} simply *fit* — easy, safe, a connection you wouldn't have to fight for.`,
+      lift:`One of you naturally fuels the other. ${uElem} and ${iElem} feed each other's growth — you'd each become more fully yourself in the other's company.`,
+      twin:`Same element, same wavelength — two ${uElem} hearts beating in time. Intuitive and deeply comfortable, even if you'd both instinctively want to lead.`,
+      magnet:`A true push-and-pull. Your ${uElem} and ${iElem} energies test and bend each other — frustrating, magnetic, and never, ever boring.`,
+      spicy:`Your zodiac signs meet head-on — and that head-on collision is exactly the spark. High tension, high heat, the kind you don't forget.`,
+      slow:`No fireworks on day one — yours is a slow burn. ${uElem} and ${iElem} unfold to each other gradually, layer by layer.`,
     };
-    body=`${flavor[key]} What pulls you together: ${pull}. What to watch: ${caution}.`;
-    if(opts.userHasTime===false) body+=` (Add your birth time for a sharper reading.)`;
+    body=`${flavor[key]} In the Korean chart, ${zl}. Where you shine brightest together is ${top.label.toLowerCase()} at ${top.score}% — ${top.note} — while ${low.label.toLowerCase()} (${low.score}%) is the slower-burn note, where ${low.note}, so give that side a little patience. ${advice[key]||""}`;
+    if(opts.userHasTime===false) body+=` Add your exact birth time and the reading sharpens even further.`;
   }
   return { score:overall, type, emoji, headline, body, factors, isMinor:minor,
     idolElement:iElem, idolAnimal:ANIMALS[idol.zodiac], dimensions, pull, caution,
