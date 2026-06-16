@@ -48,6 +48,11 @@
  .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--ink)}
  .btn.alt:hover{box-shadow:none;background:rgba(23,20,15,.05)}
  .btn.seal{background:var(--seal);color:#fff}.btn.seal:hover{box-shadow:0 8px 22px rgba(192,57,43,.3)}
+ .btn.share{background:var(--seal);color:#fff;margin-top:14px}.btn.share:hover{box-shadow:0 8px 22px rgba(192,57,43,.32)}
+ #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:20;
+  background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;padding:11px 18px;border-radius:30px;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease)}
+ #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
  .or{text-align:center;color:var(--graphite);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:22px 0 10px}
  .search{position:relative}
  .drop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bone2);border:1px solid var(--vellum);
@@ -179,6 +184,7 @@ async function openCompat(id){
  $('form').style.display='none';$('out').innerHTML='<div class="small">Reading your chemistry…</div>';
  try{ const r=await api(`/api/compat?${bq(b)}&idol=${id}`);
   const R=r.result, I=r.idol; const link=R.isMinor?'§':'⟷';
+  LAST={score:R.score,type:R.type,idol:I.stage};
   const dims=R.dimensions.map((d,idx)=>`<div class="dim reveal" style="transition-delay:${idx*70}ms"><div class="dlab"><span>${d.emoji} ${esc(d.label)}</span><span class="pct">${d.score}</span></div><div class="track"><i data-w="${d.score}"></i></div><div class="dnote">${esc(d.note)}</div></div>`).join('');
   const realline=(I.real||I.korean)?`<div class="center reveal"><span class="seal-name"><span class="stamp">본명</span> real name — Saju reads <b>${esc([I.korean,I.real].filter(Boolean).join(' · '))}</b></span></div>`:'';
   show(`<div class="pair reveal">
@@ -190,6 +196,7 @@ async function openCompat(id){
    <div class="chem reveal">${esc(R.type)}</div>
    <div class="meta reveal">${esc(I.group||'soloist')} · born ${esc(I.dob)}</div>
    ${realline}
+   <button class="btn share reveal" onclick="shareResult()">🔗 Share my match</button>
    ${dims}
    <div class="rbody reveal">${esc(R.body)}</div>
    <div class="pc reveal" style="--c:var(--wood)"><b>What pulls you together:</b> ${esc(R.pull)}</div>
@@ -216,5 +223,16 @@ async function loadPhoto(id,name,group){
   const el2=$(id); if(url&&el2){el2.style.backgroundImage=`url("${url}")`;el2.innerHTML='';}}catch{}
 }
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// ── share (viral) ──
+let LAST=null;
+function toast(msg){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200);}
+async function shareResult(){
+ if(!LAST)return; const url=location.origin+'/';
+ const text=`I'm a ${LAST.score}% "${LAST.type}" match with ${LAST.idol} 💜 Find YOUR K-pop soulmate by Korean Saju:`;
+ try{ if(navigator.share){ await navigator.share({title:'K-Saju × K-Pop',text,url}); return; } }
+ catch(e){ if(e&&e.name==='AbortError') return; }
+ try{ await navigator.clipboard.writeText(text+' '+url); toast('Copied! Paste it anywhere ✦'); }
+ catch{ prompt('Copy your result:', text+' '+url); }
+}
 decorate(); // initial hero
 </script></body></html>

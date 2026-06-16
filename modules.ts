@@ -7,7 +7,7 @@ import { Reading } from "./reading.ts";
 
 export interface ModuleMeta{ id:string; title:string; price:number; emoji:string; teaser:string; addon:boolean; needsPhoto?:boolean; }
 export const CATALOG: ModuleMeta[] = [
-  {id:"core",        title:"Your Saju Reading",            price:4.99, emoji:"🔮", addon:false, teaser:"Four Pillars · day master · wealth · love · career · 2026 · luck."},
+  {id:"core",        title:"Your Saju Reading",            price:2.99, emoji:"🔮", addon:false, teaser:"Four Pillars · day master · wealth · love · career · 2026 · luck."},
   {id:"monthly_2026",title:"2026 Month-by-Month",          price:3.99, emoji:"📅", addon:true,  teaser:"All 12 months of your Fire Horse year, decoded one by one."},
   {id:"daeun_life",  title:"Your Life Map · Great Luck",   price:4.99, emoji:"🗺️", addon:true,  teaser:"Your 10-year luck cycles — the decades that make or break you."},
   {id:"love_deep",   title:"Love & Marriage Deep-Dive",    price:2.99, emoji:"💕", addon:true,  teaser:"Your ideal partner, your marriage years, your red flags."},
