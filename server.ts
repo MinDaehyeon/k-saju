@@ -174,7 +174,7 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
       const ent=db.entitlements(id);
       return json({ id, name:birth.name, koreanName:row.korean_name, needName:!row.korean_name,
         names: row.korean_name? undefined : generateNames(birth.name,c),
-        pillars:x.pillars, dayMaster:x.dayMaster, zodiac:x.zodiac, strength:x.strength, meta:x.meta,
+        pillars:x.pillars, dayMaster:x.dayMaster, zodiac:x.zodiac, strength:x.strength, elements:x.elements, meta:x.meta,
         modules: CATALOG.map(m=>({...m, unlocked: ent.includes(m.id)})), enrichEnabled });
     }
     // 웹훅
@@ -203,7 +203,7 @@ Bun.serve({port:PORT, idleTimeout:150, async fetch(req){ // 풍부화 LLM 대기
     // /r/:id → 대시보드
     if(path.startsWith("/r/")) return new Response(Bun.file(DIR+"/reading.html"));
     // 정적 — allowlist만 (DB/소스/.env 노출 차단)
-    const STATIC=new Set(["/","/app.html","/reading.html","/idols.html","/favicon.ico"]);
+    const STATIC=new Set(["/","/app.html","/reading.html","/idols.html","/favicon.ico","/art.js"]);
     if(STATIC.has(path)){ const file=DIR+(path==="/"?"/idols.html":path); const f=Bun.file(file); if(await f.exists()) return new Response(f); }
     return new Response("not found",{status:404});
   }catch(e:any){

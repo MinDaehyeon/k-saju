@@ -51,6 +51,7 @@
  .file{margin:14px 0;width:100%;font-size:13px;color:var(--ink)}
  .small{color:var(--graphite);font-size:11px;text-align:center;margin-top:16px;line-height:1.5}
  .err{color:var(--seal);font-size:13px;text-align:center;margin-top:8px}
+ .artmark{display:flex;justify-content:center;margin:8px auto 12px}.artmark svg{width:min(226px,70vw);height:auto}
  .share-cap{text-align:center;font-size:11px;color:var(--graphite);margin:4px 0}
  .share-tools{display:flex;justify-content:center;gap:10px;margin:6px 0;flex-wrap:wrap}
  .share-tools button{width:44px;height:44px;border-radius:50%;border:1px solid var(--vellum);background:var(--bone2);color:var(--ink);
@@ -63,9 +64,15 @@
 <div class="wrap"><div class="band"><i></i><i></i><i></i><i></i><i></i></div>
 <header><div class="wm">K-SAJU<small>사주 (Saju)</small></div><div class="tag">운세</div></header>
 <main><div id="card"><div class="sub">Reading your stars…</div></div></main></div>
+<script src="/art.js"></script>
 <script>
 const ID=location.pathname.split('/')[2];
 let D=null, APPSHARE=null;
+const ELEM_ORDER=['Wood','Fire','Earth','Metal','Water'];
+function chartArt(D,size){ try{ const P=D.pillars||{}; const counts=D.elements&&D.elements.count;
+  const dmElem=Math.max(0,ELEM_ORDER.indexOf(D.dayMaster.en));
+  const seed=window.sajuArtSeed([ID,D.koreanName||D.name||'',P.year,P.month,P.day,P.hour,D.dayMaster.en,counts?counts.join(','):'']);
+  return window.sajuArt({counts,dmElem,seed,size:size||226}); }catch(e){ return ''; } }
 const card=document.getElementById('card');
 const KOCH={overview:'개요',personality:'성격',wealth:'재물운',love:'연애·결혼운',career:'직업운',year2026:'2026 운세',luck:'행운의 열쇠'};
 async function api(p,opt){const r=await fetch(p,opt);if(!r.ok)throw await r.json().catch(()=>({error:r.status}));return r.json();}
@@ -96,6 +103,7 @@ function renderDash(){
  let html='<div class="sub" style="font-family:Archivo;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:10px;color:var(--graphite)">Your Saju · 사주팔자</div>'+
   '<div class="kname">'+esc(D.koreanName||D.name)+'</div>'+
   '<div class="sub">'+esc(D.dayMaster.en)+' Day Master · '+esc(D.zodiac.animal)+' '+D.zodiac.emoji+' · '+esc(D.strength)+' chart</div>'+
+  '<div class="artmark">'+chartArt(D,226)+'</div>'+
   '<div class="pillars">'+gz(P.yearKR,'Year')+gz(P.monthKR,'Month')+gz(P.dayKR,'Day')+gz(P.hourKR,'Hour')+'</div>'+
   '<div id="viewer"></div><div id="grid"></div>'+
   '<button class="btn share" onclick="shareResult()">📸 Share my Korean name</button>'+

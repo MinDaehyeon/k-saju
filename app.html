@@ -54,6 +54,7 @@
  .crest .ava{width:104px;height:104px;border-radius:50%;margin:0 auto;border:2px solid var(--c,#888);
   display:flex;align-items:center;justify-content:center;font-family:"Nanum Myeongjo",serif;font-weight:800;
   font-size:40px;color:var(--c,#555);background:var(--bone2)}
+ .artmark{display:flex;justify-content:center;margin:6px auto 10px}.artmark svg{width:min(236px,72vw);height:auto}
  .crest .dm{font-family:Archivo,sans-serif;font-weight:900;font-size:26px;margin-top:12px;letter-spacing:-.5px}
  .crest .zo{font-size:13px;color:var(--graphite);margin-top:2px}
  .pillars{display:flex;gap:8px;margin:18px 0}
@@ -152,9 +153,15 @@
 </main>
 <footer></footer>
 </div>
+<script src="/art.js"></script>
 <script>
 let DATA=null, CHOSEN=null;
 const $=(id)=>document.getElementById(id);
+const ELEM_ORDER=['Wood','Fire','Earth','Metal','Water'];
+function chartArt(D,size){ try{ const P=D.pillars||{}; const counts=D.elements&&D.elements.count;
+  const dmElem=Math.max(0,ELEM_ORDER.indexOf(D.dayMaster.en));
+  const seed=window.sajuArtSeed([D._name||'',P.year,P.month,P.day,P.hour,D.dayMaster.en,counts?counts.join(','):'']);
+  return window.sajuArt({counts,dmElem,seed,size:size||236}); }catch(e){ return ''; } }
 const ELEMCOL={Wood:'var(--wood)',Fire:'var(--fire)',Earth:'var(--earth)',Metal:'var(--metal)',Water:'var(--water)'};
 const ELEM5=[['Wood','목'],['Fire','화'],['Earth','토'],['Metal','금'],['Water','수']];
 const KOCH={personality:'성격',wealth:'재물운',love:'연애·결혼운',career:'직업운',year2026:'2026 운세',luck:'행운의 열쇠'};
@@ -194,7 +201,7 @@ function renderTeaser(){
     <div class="ctitle"><span class="ko">${KOCH[ch.key]||''}</span>${esc(KOEN[ch.key]||ch.title)}</div>
     <div class="cverdict">“${esc(ch.verdict)}”</div><div class="cblur"></div></div><div class="clock">🔒</div></div>`).join('');
  $('s_teaser').innerHTML=`
-  <div class="crest reveal"><div class="ava" style="--c:${c}">${ELEM5[['Wood','Fire','Earth','Metal','Water'].indexOf(D.dayMaster.en)][1]}</div>
+  <div class="crest reveal"><div class="artmark">${chartArt(D,236)}</div>
    <div class="dm">${esc(D.dayMaster.en)} Day Master</div>
    <div class="zo">Born in the year of the ${esc(D.zodiac.animal)} ${D.zodiac.emoji} · ${esc(D.strength)} chart</div></div>
   <div class="pillars reveal">${gz('y',P.yearKR,'Year')}${gz('m',P.monthKR,'Month')}${gz('d',P.dayKR,'Day')}${gz('h',P.hourKR,'Hour')}</div>
