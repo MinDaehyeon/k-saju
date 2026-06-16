@@ -49,6 +49,13 @@
  .btn.alt:hover{box-shadow:none;background:rgba(23,20,15,.05)}
  .btn.seal{background:var(--seal);color:#fff}.btn.seal:hover{box-shadow:0 8px 22px rgba(192,57,43,.3)}
  .btn.share{background:var(--seal);color:#fff;margin-top:14px}.btn.share:hover{box-shadow:0 8px 22px rgba(192,57,43,.32)}
+ .share-tools{display:flex;justify-content:center;align-items:center;gap:10px;margin:6px 0 4px;flex-wrap:wrap}
+ .share-tools button{width:44px;height:44px;border-radius:50%;border:1px solid var(--vellum);background:var(--bone2);
+  color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  font-family:Archivo,sans-serif;font-weight:900;font-size:13px;transition:transform .16s var(--ease),background .16s,border-color .16s}
+ .share-tools button:hover{transform:translateY(-2px);background:var(--bone);border-color:var(--ink)}
+ .share-tools button.copied{background:var(--ink);color:var(--paper)}
+ .share-cap{text-align:center;font-size:11px;color:var(--graphite);margin:2px 0 4px;letter-spacing:.3px}
  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:20;
   background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;padding:11px 18px;border-radius:30px;
   opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease)}
@@ -184,7 +191,8 @@ async function openCompat(id){
  $('form').style.display='none';$('out').innerHTML='<div class="small">Reading your chemistry…</div>';
  try{ const r=await api(`/api/compat?${bq(b)}&idol=${id}`);
   const R=r.result, I=r.idol; const link=R.isMinor?'§':'⟷';
-  LAST={score:R.score,type:R.type,idol:I.stage};
+  LAST={score:R.score,type:R.type,idol:I.stage,group:I.group||'soloist',you:R.you,them:R.them,idolPhoto:null};
+  wikiPhoto(I.stage,I.group).then(u=>{if(LAST&&LAST.idol===I.stage)LAST.idolPhoto=u||null;}).catch(()=>{});
   const dims=R.dimensions.map((d,idx)=>`<div class="dim reveal" style="transition-delay:${idx*70}ms"><div class="dlab"><span>${d.emoji} ${esc(d.label)}</span><span class="pct">${d.score}</span></div><div class="track"><i data-w="${d.score}"></i></div><div class="dnote">${esc(d.note)}</div></div>`).join('');
   const realline=(I.real||I.korean)?`<div class="center reveal"><span class="seal-name"><span class="stamp">본명</span> real name — Saju reads <b>${esc([I.korean,I.real].filter(Boolean).join(' · '))}</b></span></div>`:'';
   show(`<div class="pair reveal">
@@ -196,7 +204,9 @@ async function openCompat(id){
    <div class="chem reveal">${esc(R.type)}</div>
    <div class="meta reveal">${esc(I.group||'soloist')} · born ${esc(I.dob)}</div>
    ${realline}
-   <button class="btn share reveal" onclick="shareResult()">🔗 Share my match</button>
+   <button class="btn share reveal" onclick="shareResult()">📸 Share my result card</button>
+   <div class="share-cap reveal">or send the link →</div>
+   ${shareButtonsHtml()}
    ${dims}
    <div class="rbody reveal">${esc(R.body)}</div>
    <div class="pc reveal" style="--c:var(--wood)"><b>What pulls you together:</b> ${esc(R.pull)}</div>
@@ -226,13 +236,77 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 // ── share (viral) ──
 let LAST=null;
 function toast(msg){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200);}
+function shareUrl(){return location.origin+'/';}
+function shareText(){return LAST?`I'm a ${LAST.score}% "${LAST.type}" match with ${LAST.idol} 💜 Find YOUR K-pop soulmate by Korean Saju:`:'';}
+function shareButtonsHtml(){return `<div class="share-tools reveal" aria-label="Share">
+  <button onclick="platformShare('x')" aria-label="Share on X">X</button>
+  <button onclick="platformShare('whatsapp')" aria-label="WhatsApp">WA</button>
+  <button onclick="platformShare('reddit')" aria-label="Reddit">R</button>
+  <button onclick="platformShare('telegram')" aria-label="Telegram">TG</button>
+  <button class="share-copy" onclick="platformShare('copy')" aria-label="Copy link">🔗</button>
+ </div>`;}
+function platformShare(kind){
+ const url=shareUrl(), text=shareText(); const eU=encodeURIComponent(url), eT=encodeURIComponent(text);
+ if(kind==='copy'){ navigator.clipboard.writeText(text+' '+url).then(()=>{toast('Copied! Paste it anywhere ✦');const b=document.querySelector('.share-copy');if(b){b.classList.add('copied');setTimeout(()=>b.classList.remove('copied'),900);}}).catch(()=>prompt('Copy your result:',text+' '+url)); return; }
+ const map={ x:`https://twitter.com/intent/tweet?text=${eT}&url=${eU}`,
+   whatsapp:`https://wa.me/?text=${encodeURIComponent(text+' '+url)}`,
+   reddit:`https://www.reddit.com/submit?url=${eU}&title=${eT}`,
+   telegram:`https://t.me/share/url?url=${eU}&text=${eT}` };
+ window.open(map[kind],'_blank','noopener,noreferrer');
+}
+// ── shareable image card (canvas → Web Share files / download) ──
+async function waitForCardFonts(){ if(!document.fonts)return;
+ await Promise.race([Promise.all([document.fonts.load('900 72px Archivo'),document.fonts.load('800 72px "Nanum Myeongjo"'),document.fonts.ready]),new Promise(r=>setTimeout(r,1800))]); }
+function loadCorsImage(url){return new Promise(res=>{ if(!url)return res(null);
+ const img=new Image(); img.crossOrigin='anonymous'; img.referrerPolicy='no-referrer';
+ img.onload=()=>{ try{const t=document.createElement('canvas');t.width=t.height=1;const c=t.getContext('2d');c.drawImage(img,0,0,1,1);t.toDataURL('image/png');res(img);}catch{res(null);} };
+ img.onerror=()=>res(null); img.src=url; });}
+function drawCircleImage(ctx,img,x,y,r,fbText,fbFill){
+ ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
+ if(img){const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;const s=Math.max(2*r/iw,2*r/ih);const sw=2*r/s,sh=2*r/s;const sx=(iw-sw)/2,sy=Math.max(0,(ih-sh)*0.18);ctx.drawImage(img,sx,sy,sw,sh,x-r,y-r,2*r,2*r);}
+ else{ctx.fillStyle=fbFill;ctx.fillRect(x-r,y-r,2*r,2*r);ctx.fillStyle='#17140f';ctx.font='800 86px "Nanum Myeongjo",Archivo,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fbText,x,y+6);}
+ ctx.restore();
+ ctx.lineWidth=8;ctx.strokeStyle=fbFill&&!img?fbFill:'#17140f';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+}
+function cvColor(v){const m={Wood:'#2f6b54',Fire:'#c0392b',Earth:'#bf9430',Metal:'#7c776b',Water:'#222a36'};return m[v]||'#7c776b';}
+async function renderShareCard(withPhoto){
+ await waitForCardFonts();
+ const W=1080,H=1920,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#cbc6b8';ctx.fillRect(0,0,W,H);
+ ctx.globalAlpha=.14;ctx.fillStyle='#17140f';for(let i=0;i<800;i++){ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2.2,Math.random()*2.2);}ctx.globalAlpha=1;
+ ['#2f6b54','#c0392b','#bf9430','#7c776b','#222a36'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(i*(W/5),0,W/5,34);});
+ ctx.textAlign='center';ctx.textBaseline='alphabetic';
+ ctx.fillStyle='#17140f';ctx.font='900 56px Archivo,sans-serif';ctx.fillText('K-SAJU × K-POP',W/2,140);
+ ctx.fillStyle='#c0392b';ctx.font='800 40px "Nanum Myeongjo",serif';ctx.fillText('사주 궁합 · Korean compatibility',W/2,200);
+ const idolImg=withPhoto?await loadCorsImage(LAST.idolPhoto||await wikiPhoto(LAST.idol,LAST.group)):null;
+ const yA=560,r=140;
+ drawCircleImage(ctx,null,330,yA,r,'나',cvColor(LAST.you.element));
+ drawCircleImage(ctx,idolImg,750,yA,r,(LAST.idol||'?')[0],'#e7e3da');
+ ctx.fillStyle='#c0392b';ctx.font='800 80px "Nanum Myeongjo",serif';ctx.fillText(LAST.score&&LAST.them?'⟷':'⟷',W/2,yA+26);
+ ctx.fillStyle='#17140f';ctx.font='900 42px Archivo,sans-serif';ctx.fillText('You (나)',330,yA+r+70);ctx.fillText(LAST.idol,750,yA+r+70);
+ ctx.fillStyle='#5c574d';ctx.font='500 34px Inter,sans-serif';
+ ctx.fillText(`${LAST.you.element} · ${LAST.you.animal}`,330,yA+r+118);ctx.fillText(`${LAST.them.element} · ${LAST.them.animal}`,750,yA+r+118);
+ ctx.fillStyle='#17140f';ctx.font='900 230px Archivo,sans-serif';ctx.fillText(`${LAST.score}%`,W/2,1140);
+ ctx.fillStyle='#c0392b';ctx.font='900 64px Archivo,sans-serif';ctx.fillText(LAST.type,W/2,1235);
+ ctx.strokeStyle='#7c776b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(160,1340);ctx.lineTo(920,1340);ctx.stroke();
+ ctx.fillStyle='#2a2620';ctx.font='500 40px Inter,sans-serif';ctx.fillText('Korean birth-chart chemistry for your bias.',W/2,1430);
+ ctx.fillStyle='#17140f';ctx.font='900 40px Archivo,sans-serif';ctx.fillText('find yours · k-saju-wxe6.onrender.com',W/2,1800);
+ return canvas;
+}
+function canvasToBlob(c){return new Promise((res,rej)=>{try{c.toBlob(b=>b?res(b):rej(new Error('export')),'image/png',0.95);}catch(e){rej(e);}});}
+async function makeShareImageBlob(){ try{return await canvasToBlob(await renderShareCard(true));}catch(e){return await canvasToBlob(await renderShareCard(false));} }
 async function shareResult(){
- if(!LAST)return; const url=location.origin+'/';
- const text=`I'm a ${LAST.score}% "${LAST.type}" match with ${LAST.idol} 💜 Find YOUR K-pop soulmate by Korean Saju:`;
- try{ if(navigator.share){ await navigator.share({title:'K-Saju × K-Pop',text,url}); return; } }
- catch(e){ if(e&&e.name==='AbortError') return; }
- try{ await navigator.clipboard.writeText(text+' '+url); toast('Copied! Paste it anywhere ✦'); }
- catch{ prompt('Copy your result:', text+' '+url); }
+ if(!LAST)return; let blob;
+ try{ blob=await makeShareImageBlob(); }catch{ blob=null; }
+ if(blob){ const file=new File([blob],`k-saju-${(LAST.idol||'match').replace(/\W+/g,'')}.png`,{type:'image/png'});
+  try{ if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){ await navigator.share({title:'K-Saju × K-Pop',text:shareText(),files:[file]}); return; } }
+  catch(e){ if(e&&e.name==='AbortError')return; }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('Image saved — post it anywhere ✦');return;
+ }
+ // image failed → text share fallback
+ const url=shareUrl(),text=shareText();
+ try{ if(navigator.share){ await navigator.share({title:'K-Saju × K-Pop',text,url}); return; } }catch(e){ if(e&&e.name==='AbortError')return; }
+ platformShare('copy');
 }
 decorate(); // initial hero
 </script></body></html>
