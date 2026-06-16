@@ -39,14 +39,20 @@ function validate(o:any){
   return {b:{year,month,day,hour,minute,gender}, name, email};
 }
 function chartCommon(c:any){return {
-  pillars:{year:c.year.gz,month:c.month.gz,day:c.day.gz,hour:c.hour?.gz,yearKR:c.year.gzKR,dayKR:c.day.gzKR},
+  pillars:{year:c.year.gz,month:c.month.gz,day:c.day.gz,hour:c.hour?.gz,
+    yearKR:c.year.gzKR,monthKR:c.month.gzKR,dayKR:c.day.gzKR,hourKR:c.hour?.gzKR},
   dayMaster:{cn:ELEM_CN[c.dayMasterElem],en:ELEM_EN[c.dayMasterElem]},
   zodiac:{animal:ANIMALS[c.zodiac],emoji:ANIMAL_EMOJI[c.zodiac],branch:BRANCHES[c.zodiac]},
   elements:c.elements, strength:c.strength.verdict, meta:c.meta};
 }
 function teaserPayload(b:any,name:string){
   const c=computeSaju(b); const r=buildReading(c,{name});
-  const x=chartCommon(c); return {pillars:x.pillars,dayMaster:x.dayMaster,zodiac:x.zodiac,reading:{overview:r.overview}};
+  const x=chartCommon(c);
+  // 점진적 페이월: 7챕터 제목+한줄평(verdict)은 무료, 본문(body)은 유료
+  const order=['personality','wealth','love','career','year2026','luck'];
+  const chapters=order.map(k=>({key:k,title:(r as any)[k].title,verdict:(r as any)[k].verdict}));
+  return {pillars:x.pillars,dayMaster:x.dayMaster,zodiac:x.zodiac,strength:x.strength,elements:x.elements,
+    reading:{overview:r.overview}, chapters};
 }
 
 // 모듈 콘텐츠 빌드 + 풍부화 + 캐시 (재열람 동일 보장)

@@ -1,146 +1,245 @@
-<!DOCTYPE html>
-<html lang="en"><head>
+<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>K-Saju · Korean Star Reading</title>
+<title>K-SAJU · Korean Star Reading (사주)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
 <style>
- :root{--gold:#e9c46a;--gold2:#f4d58d;--muted:#9aa0c3}
+ :root{
+  --paper:#cbc6b8; --bone:#e7e3da; --bone2:#efece4; --ink:#17140f; --graphite:#5c574d; --vellum:#bbb4a2;
+  --seal:#c0392b;
+  --wood:#2f6b54; --fire:#c0392b; --earth:#bf9430; --metal:#7c776b; --water:#222a36;
+  --ease:cubic-bezier(.2,.7,.2,1);
+ }
  *{box-sizing:border-box}
- body{margin:0;font-family:Georgia,serif;color:#f3f1ff;min-height:100vh;
-  background:radial-gradient(1200px 600px at 50% -10%,#2a2160 0%,transparent 60%),linear-gradient(180deg,#0d1023,#161a3a);
-  display:flex;align-items:flex-start;justify-content:center;padding:20px}
- .wrap{width:100%;max-width:440px}
- .card{background:linear-gradient(180deg,rgba(36,30,82,.92),rgba(18,18,46,.96));border:1px solid rgba(233,196,106,.35);
-  border-radius:24px;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center;margin:10px 0}
- .han{font-size:12px;letter-spacing:7px;color:var(--gold);opacity:.85}
- h1{margin:6px 0 2px;font-size:30px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
- .sub{color:var(--muted);font-size:13px;font-style:italic;margin-bottom:16px}
- label{display:block;text-align:left;font-size:11px;color:var(--muted);margin:12px 2px 5px;letter-spacing:.5px}
- input,select{width:100%;padding:12px;border-radius:11px;border:1px solid rgba(233,196,106,.25);background:rgba(0,0,0,.25);color:#fff;font-size:15px;font-family:inherit}
- .row2{display:flex;gap:10px}.row2>div{flex:1}
- .btn{margin-top:16px;width:100%;padding:14px;border:none;border-radius:13px;cursor:pointer;font-size:15px;font-weight:bold;color:#241a00;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 8px 24px rgba(233,196,106,.3)}
- .btn:active{transform:translateY(1px)}
- .ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.15);box-shadow:none;margin-top:10px}
- .screen{display:none}.screen.on{display:block;animation:f .5s ease}@keyframes f{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
- .elem{font-size:46px;margin:4px 0}.pill{font-size:19px;color:var(--gold);margin:0}.tag{color:var(--muted);font-size:12px}
- .saju{display:flex;gap:7px;justify-content:center;margin:14px 0}
- .gz{background:rgba(0,0,0,.3);border:1px solid rgba(233,196,106,.3);border-radius:10px;padding:8px 3px;flex:1}
- .gz .h{font-size:21px;color:#fff}.gz .s{font-size:9px;color:var(--muted);margin-top:3px}
- .sec{text-align:left;margin:16px 0;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.07)}
- .sec h3{color:var(--gold2);font-size:13px;letter-spacing:1px;margin:0 0 2px;text-transform:uppercase}
- .sec .v{color:var(--gold);font-size:14px;font-style:italic;margin-bottom:6px}
- .sec p{margin:0;line-height:1.6;font-size:14.5px;color:#e9e7ff}.sec b{color:var(--gold2)}
- .nameopt{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border:1px solid rgba(233,196,106,.22);border-radius:14px;padding:12px;margin:9px 0;cursor:pointer;text-align:left}
- .nameopt:hover,.nameopt.sel{border-color:var(--gold);background:rgba(233,196,106,.1)}
- .nameopt .kr{font-size:25px;color:#fff;min-width:58px}.nameopt .ro{color:var(--gold2);font-size:14px}.nameopt .mn{color:var(--muted);font-size:11px}
- .badge{display:inline-block;font-size:10px;color:#241a00;background:var(--gold2);border-radius:8px;padding:1px 6px;margin-left:4px}
- .listen{background:rgba(233,196,106,.15);border:1px solid rgba(233,196,106,.4);color:var(--gold);border-radius:50%;width:40px;height:40px;font-size:17px;cursor:pointer;flex-shrink:0}
- .lock{position:relative;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid rgba(233,196,106,.3)}
- .lock .blur{filter:blur(5px);opacity:.45;padding:15px;text-align:left;font-size:13px}
- .lock .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(13,16,35,.25),rgba(13,16,35,.9))}
- .pay{padding:12px 22px;border-radius:30px;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#241a00;font-weight:bold;border:none;cursor:pointer;font-size:15px}
- .small{color:var(--muted);font-size:11px;margin-top:14px}.err{color:#ff9a9a;font-size:13px;margin-top:10px}
-</style></head><body><div class="wrap"><div class="card">
+ html{scroll-behavior:smooth}
+ body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;
+  display:flex;justify-content:center;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+ #spot{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,28%), rgba(192,57,43,.10), transparent 62%);}
+ .wrap{width:100%;max-width:460px;min-height:100vh;position:relative;z-index:1}
+ .band{display:flex;height:5px}.band i{flex:1}
+ .band i:nth-child(1){background:var(--wood)}.band i:nth-child(2){background:var(--fire)}
+ .band i:nth-child(3){background:var(--earth)}.band i:nth-child(4){background:var(--metal)}.band i:nth-child(5){background:var(--water)}
+ header{display:flex;justify-content:space-between;align-items:baseline;padding:16px 20px 0}
+ .wm{font-family:Archivo,sans-serif;font-weight:900;letter-spacing:-.5px;font-size:15px}
+ .wm small{font-family:"Nanum Myeongjo",serif;font-weight:800;color:var(--seal);margin-left:6px;font-size:12px}
+ .tag{font-family:"Nanum Myeongjo",serif;font-size:12px;color:var(--graphite)}
+ .tag em{font-style:normal;font-family:Inter;font-size:10px;color:var(--vellum);margin-left:3px}
+ main{padding:20px}
+ h1{font-family:Archivo,sans-serif;font-weight:900;letter-spacing:-1.4px;line-height:.96;font-size:40px;margin:14px 0 0}
+ h1 em{font-style:normal;color:var(--seal)}
+ .lede{font-size:14px;color:var(--graphite);line-height:1.55;margin:14px 0 22px}
+ .lede b{color:var(--ink)}
+ .panel{background:var(--bone);border:1px solid var(--vellum);border-radius:9px;padding:18px}
+ label{display:block;font-family:Archivo,sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--graphite);margin:0 0 6px}
+ input,select{width:100%;padding:12px;border:1px solid var(--vellum);border-radius:7px;background:var(--bone2);
+  color:var(--ink);font-size:15px;font-family:inherit;transition:border-color .18s}
+ input:focus,select:focus{outline:none;border-color:var(--ink)}
+ .row{display:flex;gap:12px}.row>div{flex:1}.mt{margin-top:14px}
+ .btn{width:100%;margin-top:18px;padding:15px;border:none;border-radius:30px;cursor:pointer;
+  font-family:Archivo,sans-serif;font-weight:700;font-size:14px;letter-spacing:.3px;
+  background:var(--ink);color:var(--paper);transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s}
+ .btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(23,20,15,.22)}
+ .btn:active{transform:translateY(0)}
+ .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+ .btn.alt:hover{box-shadow:none;background:rgba(23,20,15,.05)}
+ .btn.seal{background:var(--seal);color:#fff}.btn.seal:hover{box-shadow:0 10px 26px rgba(192,57,43,.32)}
+ .btn[disabled]{opacity:.45;cursor:default;transform:none;box-shadow:none}
+ .err{color:var(--seal);font-size:13px;text-align:center;margin-top:10px}
+ .small{color:var(--graphite);font-size:11px;text-align:center;margin:16px 0 8px;line-height:1.5}
+ .screen{display:none}.screen.on{display:block}
+ /* teaser */
+ .crest{text-align:center;margin:6px 0 2px}
+ .crest .ava{width:104px;height:104px;border-radius:50%;margin:0 auto;border:2px solid var(--c,#888);
+  display:flex;align-items:center;justify-content:center;font-family:"Nanum Myeongjo",serif;font-weight:800;
+  font-size:40px;color:var(--c,#555);background:var(--bone2)}
+ .crest .dm{font-family:Archivo,sans-serif;font-weight:900;font-size:26px;margin-top:12px;letter-spacing:-.5px}
+ .crest .zo{font-size:13px;color:var(--graphite);margin-top:2px}
+ .pillars{display:flex;gap:8px;margin:18px 0}
+ .gz{flex:1;background:var(--bone);border:1px solid var(--vellum);border-radius:8px;padding:11px 4px;text-align:center}
+ .gz .k{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:20px}
+ .gz .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--graphite);margin-top:4px;font-family:Archivo}
+ .elembar{display:flex;gap:8px;align-items:flex-end;height:64px;margin:8px 2px 4px}
+ .elembar .e{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+ .elembar .bar{width:100%;background:var(--c);border-radius:2px 2px 0 0;transition:height .9s var(--ease);min-height:3px}
+ .elembar .el{font-size:9px;color:var(--graphite);margin-top:5px;font-family:Archivo;font-weight:700}
+ .chapter{display:flex;gap:13px;align-items:flex-start;background:var(--bone);border:1px solid var(--vellum);
+  border-radius:9px;padding:14px;margin:10px 0;position:relative}
+ .chapter.free{border-left:3px solid var(--wood)}
+ .cnum{font-family:Archivo,sans-serif;font-weight:900;font-size:15px;color:var(--vellum);min-width:22px}
+ .cmain{flex:1;min-width:0}
+ .ctitle{font-family:Archivo,sans-serif;font-weight:700;font-size:15px}
+ .ctitle .ko{font-family:"Nanum Myeongjo",serif;color:var(--seal);font-weight:800;font-size:13px;margin-right:5px}
+ .cverdict{font-size:13.5px;color:var(--ink);font-style:italic;margin-top:4px}
+ .cbody{font-size:14px;line-height:1.65;color:#2a2620;margin-top:7px}
+ .cblur{margin-top:7px;height:30px;border-radius:5px;
+  background:repeating-linear-gradient(90deg,var(--vellum) 0 60px,transparent 60px 66px,var(--vellum) 66px 150px,transparent 150px 158px);
+  filter:blur(3px);opacity:.5}
+ .clock{position:absolute;top:13px;right:13px;font-size:13px;opacity:.6}
+ .paywall{background:var(--ink);color:var(--paper);border-radius:12px;padding:22px 20px;margin:18px 0 8px;text-align:center}
+ .paywall h3{font-family:Archivo,sans-serif;font-weight:900;font-size:20px;margin:0 0 4px;letter-spacing:-.4px}
+ .paywall .ksub{font-family:"Nanum Myeongjo",serif;color:var(--earth);font-size:13px;margin-bottom:14px}
+ .pwlist{text-align:left;max-width:280px;margin:0 auto 16px;font-size:13.5px;line-height:1.9}
+ .pwlist .ck{color:var(--earth);font-weight:900;margin-right:8px;font-family:Archivo}
+ .price{font-family:Archivo,sans-serif;font-weight:900;font-size:34px;letter-spacing:-1px}
+ .price small{font-size:13px;color:var(--vellum);font-weight:500;letter-spacing:0}
+ .paywall .btn{background:var(--seal);color:#fff;margin-top:14px}
+ .paywall .btn:hover{box-shadow:0 10px 26px rgba(192,57,43,.4)}
+ .trust{font-size:11px;color:var(--vellum);margin-top:12px;letter-spacing:.3px}
+ /* names */
+ .nameopt{display:flex;align-items:center;gap:13px;background:var(--bone);border:1px solid var(--vellum);
+  border-radius:9px;padding:13px;margin:10px 0;cursor:pointer;transition:border-color .18s,transform .18s var(--ease)}
+ .nameopt:hover{transform:translateY(-2px)}.nameopt.sel{border-color:var(--seal);background:var(--bone2)}
+ .nameopt .kr{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:26px;min-width:54px;text-align:center}
+ .nameopt .ro{font-family:Archivo,sans-serif;font-weight:700;font-size:14px}
+ .nameopt .mn{color:var(--graphite);font-size:12px;margin-top:2px}
+ .badge{display:inline-block;font-size:10px;color:#fff;background:var(--wood);border-radius:5px;padding:1px 6px;margin-left:4px;font-family:Archivo}
+ .listen{background:var(--bone2);border:1px solid var(--vellum);color:var(--ink);border-radius:50%;
+  width:42px;height:42px;font-size:16px;cursor:pointer;flex-shrink:0}
+ /* full reading */
+ .sec{margin:18px 0;padding-bottom:16px;border-bottom:1px solid var(--vellum)}
+ .sec .h{font-family:Archivo,sans-serif;font-weight:900;font-size:18px;letter-spacing:-.3px}
+ .sec .h .ko{font-family:"Nanum Myeongjo",serif;color:var(--seal);font-size:14px;margin-right:6px}
+ .sec .v{color:var(--graphite);font-style:italic;font-size:13.5px;margin:3px 0 8px}
+ .sec p{margin:0;line-height:1.7;font-size:15px;color:#2a2620}
+ .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+ .reveal.in{opacity:1;transform:none}
+ @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.bar,.elembar .bar{transition:none}}
+ footer{padding:0 20px 48px}
+</style></head><body>
+<div id="spot"></div>
+<div class="wrap">
+<div class="band"><i></i><i></i><i></i><i></i><i></i></div>
+<header><div class="wm">K-SAJU<small>사주 (Saju)</small></div><div class="tag">운세<em>(Unse · fortune)</em></div></header>
+<main>
 
  <div id="s_form" class="screen on">
-  <div class="han">韓 國 四 柱</div><h1>K-SAJU</h1>
-  <div class="sub">Korean Star Reading · 1,000 years of destiny</div>
-  <p style="font-size:14px;color:#cfccf5;line-height:1.5">Western astrology = 1 of 12 signs.<br/>Korea reads the <b style="color:var(--gold2)">exact hour you were born</b>.</p>
-  <label>YOUR NAME</label><input id="name" placeholder="e.g. Emma" value="Emma"/>
-  <div class="row2"><div><label>BIRTH DATE</label><input id="dob" type="date" value="1994-07-22"/></div>
-   <div><label>TIME (optional)</label><input id="time" type="time" value="14:30"/></div></div>
-  <div class="row2"><div><label>GENDER</label><select id="gender"><option value="F">Female</option><option value="M">Male</option></select></div>
-   <div><label>&nbsp;</label><div style="font-size:11px;color:var(--muted);padding-top:10px">Seoul solar-time corrected ✦</div></div></div>
-  <button class="btn" onclick="toTeaser()">✦ Reveal my element (free) ✦</button>
-  <div id="formerr" class="err"></div>
+  <h1 class="reveal">Read your destiny<br/>the <em>Korean</em> way.</h1>
+  <div class="lede reveal">Western astrology = 1 of 12 signs. Korea reads the <b>exact hour you were born</b> — your 사주 (Saju), the Four Pillars. Then we give you a real <b>Korean name</b> chosen for your chart.</div>
+  <div class="panel reveal">
+   <label>Your name</label><input id="name" placeholder="e.g. Emma" value="Emma"/>
+   <div class="row mt"><div><label>Birth date</label><input id="dob" type="date" value="1994-07-22"/></div>
+    <div><label>Time · 진태양시</label><input id="time" type="time" value="14:30"/></div></div>
+   <div class="row mt"><div><label>Gender</label><select id="gender"><option value="F">Female</option><option value="M">Male</option></select></div>
+    <div><label>&nbsp;</label><div style="font-size:11px;color:var(--graphite);padding-top:11px">Seoul solar-time corrected</div></div></div>
+   <button class="btn" onclick="toTeaser()">Reveal my reading — free</button>
+   <div id="formerr" class="err"></div>
+  </div>
+  <div class="small reveal">For entertainment & self-reflection · deterministic 만세력 (Manseryeok) engine</div>
  </div>
 
- <div id="s_teaser" class="screen">
-  <div class="elem" id="t_emoji">🌊</div>
-  <p class="pill" id="t_dm"></p><p class="tag" id="t_tag"></p>
-  <div class="sec" id="t_over" style="border:none"></div>
-  <div class="lock"><div class="blur">Your Four Pillars reveal your wealth years, your marriage destiny, the element you are missing, and the Korean name written in your stars…</div>
-   <div class="ov"><div style="font-size:13px;margin-bottom:10px">🔒 Unlock your <b>full Saju + 운세</b> + your <b>Korean name</b></div>
-    <button class="pay" onclick="pay()">Unlock · $4.99</button>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px">Korean name · Wealth · Love · Marriage · 2026</div></div></div>
-  <button class="btn ghost" onclick="show('s_form')">↺ Back</button>
-  <div class="small">For entertainment & self-reflection ✦ K-Saju</div>
- </div>
+ <div id="s_teaser" class="screen"></div>
+ <div id="s_names" class="screen"></div>
+ <div id="s_reading" class="screen"></div>
 
- <div id="s_names" class="screen">
-  <div class="han">作 名</div><h1 style="font-size:22px">Your Korean Name</h1>
-  <div class="sub">Names that echo <b id="n_orig" style="color:var(--gold2)"></b> — chosen for your Saju</div>
-  <div id="namelist"></div>
-  <div class="small" style="color:var(--gold2)">🔊 Tap the speaker to hear the real Korean pronunciation.</div>
-  <button class="btn" id="n_go" onclick="toReading()" disabled style="opacity:.5">Choose a name</button>
- </div>
-
- <div id="s_reading" class="screen">
-  <div class="han">四 柱 八 字</div><h1 style="font-size:22px" id="r_kor"></h1><p class="tag" id="r_korsub"></p>
-  <div class="saju" id="r_saju"></div>
-  <div id="r_body"></div>
-  <button class="btn ghost" onclick="location.href='/app.html'">↺ New reading</button>
-  <div class="small" id="r_foot"></div>
- </div>
-
-</div></div>
+</main>
+<footer></footer>
+</div>
 <script>
 let DATA=null, CHOSEN=null;
 const $=(id)=>document.getElementById(id);
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');scrollTo(0,0);}
+const ELEMCOL={Wood:'var(--wood)',Fire:'var(--fire)',Earth:'var(--earth)',Metal:'var(--metal)',Water:'var(--water)'};
+const ELEM5=[['Wood','목'],['Fire','화'],['Earth','토'],['Metal','금'],['Water','수']];
+const KOCH={personality:'성격',wealth:'재물운',love:'연애·결혼운',career:'직업운',year2026:'2026 운세',luck:'행운의 열쇠'};
+const KOEN={personality:'Personality',wealth:'Wealth',love:'Love & Marriage',career:'Career',year2026:'Your 2026',luck:'Luck Keys'};
+function col(e){return ELEMCOL[e]||'#7c776b';}
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.1});
+function decorate(){
+ document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  document.querySelectorAll('.bar[data-h]').forEach(b=>{b.style.height=b.dataset.h;});
+ }));
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');scrollTo({top:0,behavior:'smooth'});decorate();}
+if(window.matchMedia('(pointer:fine)').matches){const sp=$('spot');document.addEventListener('mousemove',e=>{sp.style.setProperty('--mx',e.clientX+'px');sp.style.setProperty('--my',e.clientY+'px');sp.style.opacity='1';});}
 function birthParams(){
  const d=$('dob').value, t=$('time').value||"12:00";
  const [y,m,dd]=d.split('-'); const [h,mi]=t.split(':');
  return {y,m,d:dd,h,min:mi,g:$('gender').value,name:$('name').value||"You"};
 }
 async function getJSON(path,p){const qs=new URLSearchParams(p).toString();const r=await fetch(path+'?'+qs);if(!r.ok)throw new Error((await r.json()).error||'error');return r.json();}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 async function toTeaser(){
  $('formerr').textContent="";
  if(!$('dob').value){$('formerr').textContent="Please enter your birth date.";return;}
- try{ DATA=await getJSON('/api/saju/teaser',birthParams());
-  $('t_emoji').textContent=DATA.zodiac.emoji;
-  $('t_dm').textContent=DATA.dayMaster.en+" Day Master";
-  $('t_tag').textContent="Day "+DATA.pillars.day+" · born in the year of the "+DATA.zodiac.animal+" "+DATA.zodiac.emoji;
-  $('t_over').innerHTML="<p>"+DATA.reading.overview.body+"</p>";
-  show('s_teaser');
- }catch(e){$('formerr').textContent=String(e.message||e);}
+ try{ DATA=await getJSON('/api/saju/teaser',birthParams()); DATA._name=birthParams().name; renderTeaser(); }
+ catch(e){$('formerr').textContent=String(e.message||e);}
+}
+function renderTeaser(){
+ const D=DATA, c=col(D.dayMaster.en), P=D.pillars;
+ const maxE=Math.max(1,...(D.elements.count||[1]));
+ const elembar=D.elements.count?`<div class="elembar">${D.elements.count.map((n,i)=>`<div class="e" style="--c:${col(ELEM5[i][0])}"><div class="bar" data-h="${Math.round(8+n/maxE*92)}%"></div><div class="el">${ELEM5[i][1]}<br>${ELEM5[i][0]}</div></div>`).join('')}</div><div class="small" style="margin-top:0">Your element balance · 오행 (Five Elements)</div>`:'';
+ const gz=(k,kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="l">${en}</div></div>`;
+ const O=D.reading.overview;
+ const chapters=D.chapters.map((ch,i)=>`<div class="chapter reveal"><div class="cnum">0${i+2}</div><div class="cmain">
+    <div class="ctitle"><span class="ko">${KOCH[ch.key]||''}</span>${esc(KOEN[ch.key]||ch.title)}</div>
+    <div class="cverdict">“${esc(ch.verdict)}”</div><div class="cblur"></div></div><div class="clock">🔒</div></div>`).join('');
+ $('s_teaser').innerHTML=`
+  <div class="crest reveal"><div class="ava" style="--c:${c}">${ELEM5[['Wood','Fire','Earth','Metal','Water'].indexOf(D.dayMaster.en)][1]}</div>
+   <div class="dm">${esc(D.dayMaster.en)} Day Master</div>
+   <div class="zo">Born in the year of the ${esc(D.zodiac.animal)} ${D.zodiac.emoji} · ${esc(D.strength)} chart</div></div>
+  <div class="pillars reveal">${gz('y',P.yearKR,'Year')}${gz('m',P.monthKR,'Month')}${gz('d',P.dayKR,'Day')}${gz('h',P.hourKR,'Hour')}</div>
+  ${elembar}
+  <div class="chapter free reveal"><div class="cnum">01</div><div class="cmain">
+    <div class="ctitle"><span class="ko">개요</span>${esc(O.title)} <span class="badge">free</span></div>
+    <div class="cverdict">“${esc(O.verdict)}”</div><div class="cbody">${O.body}</div></div></div>
+  ${chapters}
+  <div class="paywall reveal"><h3>Unlock your full Saju</h3><div class="ksub">사주 + 한국 이름 (your Korean name)</div>
+   <div class="pwlist">
+    <div><span class="ck">✓</span>All 7 chapters, in full</div>
+    <div><span class="ck">✓</span>Your <b>Korean name</b> — with audio pronunciation</div>
+    <div><span class="ck">✓</span>Wealth · Love · Marriage · Career · 2026</div>
+    <div><span class="ck">✓</span>Save & re-read anytime (private link)</div>
+   </div>
+   <div class="price">$4.99 <small>· one-time</small></div>
+   <button class="btn" onclick="pay()">Unlock my full reading →</button>
+   <div class="trust">No subscription · secure checkout · instant access</div>
+  </div>
+  <button class="btn alt reveal" onclick="show('s_form')">← Back</button>
+  <div class="small reveal">For entertainment & self-reflection · K-SAJU</div>`;
+ show('s_teaser');
 }
 async function pay(){
  const p=birthParams();
  const r=await fetch('/api/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(p)});
- const j=await r.json(); location.href=j.url; // test stub -> /app.html?paid=1&...
+ const j=await r.json(); location.href=j.url;
 }
 function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){alert('🔊 '+t);}}
 function renderNames(){
- $('n_orig').textContent=DATA.reading?DATA._name:'';
- const list=$('namelist');list.innerHTML='';
- DATA.names.forEach((n,i)=>{
-  const div=document.createElement('div');div.className='nameopt';div.id='nm'+i;div.onclick=()=>pick(i);
-  div.innerHTML='<div class="kr">'+n.kr+'</div><div style="flex:1"><div class="ro">'+n.ro+' · '+n.hanja+
-   (n.restoresMissing?'<span class="badge">restores '+n.elemName+'</span>':'')+'</div><div class="mn">'+n.meaning+'</div></div>';
-  const b=document.createElement('button');b.className='listen';b.textContent='🔊';b.onclick=(e)=>{e.stopPropagation();speak(n.kr);};
-  div.appendChild(b);list.appendChild(div);
- });
+ const list=DATA.names.map((n,i)=>`<div class="nameopt" id="nm${i}" onclick="pick(${i})">
+   <div class="kr">${esc(n.kr)}</div>
+   <div style="flex:1"><div class="ro">${esc(n.ro)} · ${esc(n.hanja)}${n.restoresMissing?`<span class="badge">restores ${esc(n.elemName)}</span>`:''}</div>
+    <div class="mn">${esc(n.meaning)}</div></div>
+   <button class="listen" onclick="event.stopPropagation();speak('${esc(n.kr)}')">🔊</button></div>`).join('');
+ $('s_names').innerHTML=`<h1 class="reveal" style="font-size:28px">Your Korean name</h1>
+  <div class="lede reveal">Names that echo <b>${esc(DATA._name||'')}</b> — each chosen for your 사주 (Saju). <span style="color:var(--seal)">🔊 Tap to hear the real Korean pronunciation.</span></div>
+  ${list}
+  <button class="btn reveal" id="n_go" onclick="toReading()" disabled>Choose a name to continue</button>`;
  show('s_names');
 }
-function pick(i){CHOSEN=i;DATA.names.forEach((_,k)=>$('nm'+k).classList.toggle('sel',k===i));const b=$('n_go');b.disabled=false;b.style.opacity='1';b.textContent='Continue as '+DATA.names[i].kr+' →';}
-function gz(h,s){return '<div class="gz"><div class="h">'+h+'</div><div class="s">'+s+'</div></div>';}
+function pick(i){CHOSEN=i;DATA.names.forEach((_,k)=>$('nm'+k).classList.toggle('sel',k===i));const b=$('n_go');b.disabled=false;b.textContent='Continue as '+DATA.names[i].kr+' →';}
 function toReading(){
- if(CHOSEN===null)return; const n=DATA.names[CHOSEN], R=DATA.reading;
- $('r_kor').textContent=n.kr; $('r_korsub').innerHTML=n.ro+' · '+n.hanja+' · <span style="color:var(--muted)">'+n.meaning+'</span>';
- const P=DATA.pillars;
- $('r_saju').innerHTML=gz(P.year,'Year')+gz(P.month,'Month')+gz(P.day,'Day')+gz(P.hour||'—','Hour');
+ if(CHOSEN===null)return; const n=DATA.names[CHOSEN], R=DATA.reading, P=DATA.pillars;
+ const gz=(kr,en)=>`<div class="gz"><div class="k">${esc(kr||'—')}</div><div class="l">${en}</div></div>`;
  const order=['overview','personality','wealth','love','career','year2026','luck'];
- $('r_body').innerHTML=order.map(k=>{const s=R[k];return '<div class="sec"><h3>'+s.title+'</h3><div class="v">'+s.verdict+'</div><p>'+s.body+'</p></div>';}).join('');
- $('r_foot').innerHTML="사주팔자 computed from your exact birth time ✦ deterministic ✦ "+(DATA.meta.tzNote?("⚠ "+DATA.meta.tzNote):"K-Saju");
+ const secs=order.map(k=>{const s=R[k];const ko=k==='overview'?'개요':(KOCH[k]||'');return `<div class="sec reveal"><div class="h"><span class="ko">${ko}</span>${esc(s.title)}</div><div class="v">“${esc(s.verdict)}”</div><p>${s.body}</p></div>`;}).join('');
+ $('s_reading').innerHTML=`<div class="crest reveal"><div class="dm" style="font-family:'Nanum Myeongjo',serif;font-size:34px">${esc(n.kr)}</div>
+   <div class="zo">${esc(n.ro)} · ${esc(n.hanja)} · ${esc(n.meaning)}</div></div>
+  <div class="pillars reveal">${gz(P.yearKR,'Year')}${gz(P.monthKR,'Month')}${gz(P.dayKR,'Day')}${gz(P.hourKR,'Hour')}</div>
+  ${secs}
+  <button class="btn alt reveal" onclick="location.href='/app.html'">↺ New reading</button>
+  <div class="small reveal">사주팔자 computed from your exact birth time · deterministic · K-SAJU</div>`;
  show('s_reading');
 }
-// 결제 후 복귀(?paid=1) => 이름 화면부터
+// 결제 후 복귀(?token&d) => 이름 화면부터
 (async function(){
  const q=new URLSearchParams(location.search);
  if(q.get('token') && q.get('d')){
   try{ DATA=await getJSON('/api/saju/full',{token:q.get('token'),y:q.get('y'),m:q.get('m'),d:q.get('d'),h:q.get('h'),min:q.get('min'),g:q.get('g'),name:q.get('name')});
    DATA._name=q.get('name'); renderNames();
   }catch(e){ show('s_form'); }
- }
+ } else { decorate(); }
 })();
 </script></body></html>
